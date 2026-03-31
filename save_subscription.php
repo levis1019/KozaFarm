@@ -15,15 +15,6 @@ $endpoint = $conn->real_escape_string($data['endpoint']);
 $p256dh = $conn->real_escape_string($data['p256dh']);
 $auth = $conn->real_escape_string($data['auth']);
 
-// Ensure the table exists (Smart Updater)
-$conn->query("CREATE TABLE IF NOT EXISTS push_subscriptions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    endpoint TEXT NOT NULL,
-    p256dh VARCHAR(255) NOT NULL,
-    auth VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)");
-
 // Check if this endpoint is already subscribed
 $stmt = $conn->prepare("SELECT id FROM push_subscriptions WHERE endpoint = ?");
 $stmt->bind_param("s", $endpoint);

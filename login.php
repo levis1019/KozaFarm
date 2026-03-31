@@ -2,13 +2,6 @@
 session_start();
 require 'db.php'; 
 
-// --- SMART DATABASE UPDATER ---
-$checkColumn = $conn->query("SHOW COLUMNS FROM users LIKE 'remember_token'");
-if ($checkColumn->num_rows == 0) {
-    $conn->query("ALTER TABLE users ADD COLUMN remember_token VARCHAR(255) DEFAULT NULL");
-}
-// ------------------------------
-
 // 1. AUTO-LOGIN PREKO KOLAČIĆA (30 DANA)
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['agrodon_remember'])) {
     $token = $conn->real_escape_string($_COOKIE['agrodon_remember']);

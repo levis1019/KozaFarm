@@ -1,15 +1,6 @@
 <?php
 require 'db.php';
 
-// 1. SMART UPDATER: Tablica za Barn Scratchpad
-$conn->query("CREATE TABLE IF NOT EXISTS scratchpad (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    note TEXT NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-)");
-$sp_check = $conn->query("SELECT id FROM scratchpad LIMIT 1");
-if($sp_check->num_rows == 0) $conn->query("INSERT INTO scratchpad (note) VALUES ('')");
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_scratchpad'])) {
     $note = $conn->real_escape_string($_POST['scratchpad_text']);
     $conn->query("UPDATE scratchpad SET note = '$note' WHERE id = 1");
@@ -95,17 +86,16 @@ if ($avg_milk > 0 && $yest_milk < ($avg_milk * 0.85)) {
     $nudges[] = "<span style='color:var(--accent-danger);'><strong>Upozorenje:</strong> Jučerašnje mlijeko palo je za <strong>{$drop}%</strong> u odnosu na tjedni prosjek!</span>";
 }
 
-$debt_q = $conn->query("SELECT id FROM customers");
-$old_debts = 0;
-while($c = $debt_q->fetch_assoc()) {
-    $cid = $c['id'];
-    $st = $conn->query("SELECT 
-        COALESCE(SUM(CASE WHEN transaction_type = 'debt' THEN amount ELSE 0 END),0) as td,
-        COALESCE(SUM(CASE WHEN transaction_type = 'payment' THEN amount ELSE 0 END),0) as tp,
-        MAX(transaction_date) as last_act
-        FROM customer_ledger WHERE customer_id = $cid")->fetch_assoc();
-    if (($st['td'] - $st['tp']) > 0 && strtotime($st['last_act']) <= strtotime('-30 days')) $old_debts++;
-}
+$debt_opt_q = $conn->query("
+    SELECT customer_id,
+    SUM(CASE WHEN transaction_type = 'debt' THEN amount ELSE 0 END) as td,
+    SUM(CASE WHEN transaction_type = 'payment' THEN amount ELSE 0 END) as tp,
+    MAX(transaction_date) as last_act
+    FROM customer_ledger
+    GROUP BY customer_id
+    HAVING (td - tp) > 0 AND last_act <= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+");
+$old_debts = $debt_opt_q->num_rows;
 if ($old_debts > 0) $nudges[] = "Imate <strong>{$old_debts} kupaca</strong> s dugom koji nisu izvršili uplatu više od 30 dana.";
 
 

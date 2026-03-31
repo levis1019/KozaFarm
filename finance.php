@@ -1,26 +1,6 @@
 <?php
 require 'db.php';
 
-// --- SMART DATABASE UPDATER ---
-$createTableSql = "CREATE TABLE IF NOT EXISTS finances (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    transaction_date DATE NOT NULL,
-    category VARCHAR(100) NOT NULL,
-    description TEXT,
-    transaction_type ENUM('income', 'expense') NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    payment_method VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)";
-$conn->query($createTableSql);
-
-// Dodavanje kolone za Dobavljača/Partnera ako ne postoji
-$checkVendor = $conn->query("SHOW COLUMNS FROM finances LIKE 'vendor'");
-if ($checkVendor->num_rows == 0) {
-    $conn->query("ALTER TABLE finances ADD COLUMN vendor VARCHAR(100) DEFAULT NULL");
-}
-// ------------------------------
-
 $success_msg = "";
 $error_msg = "";
 

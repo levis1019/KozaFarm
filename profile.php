@@ -10,12 +10,6 @@ $id = (int)$_GET['id'];
 $goat_id = $id; 
 $success_msg = ""; $error_msg = "";
 
-// --- SMART DATABASE UPDATER: Dodaj Arhivirano ---
-$checkArchive = $conn->query("SHOW COLUMNS FROM goats LIKE 'archived'");
-if ($checkArchive->num_rows == 0) {
-    $conn->query("ALTER TABLE goats ADD COLUMN archived TINYINT(1) DEFAULT 0");
-}
-
 // --- 1. SPREMANJE UREĐENOG PROFILA ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_goat'])) {
     $name = $conn->real_escape_string($_POST['edit_name']);

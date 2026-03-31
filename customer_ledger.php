@@ -8,14 +8,6 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 $customer_id = (int)$_GET['id'];
 $success_msg = ""; $error_msg = "";
 
-// --- PAMETNI UPDATE BAZE ZA KUPCE ---
-$checkPhone = $conn->query("SHOW COLUMNS FROM customers LIKE 'phone'");
-if ($checkPhone->num_rows == 0) { $conn->query("ALTER TABLE customers ADD COLUMN phone VARCHAR(50) DEFAULT NULL"); }
-$checkAddress = $conn->query("SHOW COLUMNS FROM customers LIKE 'address'");
-if ($checkAddress->num_rows == 0) { $conn->query("ALTER TABLE customers ADD COLUMN address TEXT DEFAULT NULL"); }
-$checkNotes = $conn->query("SHOW COLUMNS FROM customers LIKE 'notes'");
-if ($checkNotes->num_rows == 0) { $conn->query("ALTER TABLE customers ADD COLUMN notes TEXT DEFAULT NULL"); }
-
 // Dohvati trenutne zalihe za formu
 $prod_total = $conn->query("SELECT SUM(morning_liters + evening_liters) as t FROM milk_logs")->fetch_assoc()['t'] ?? 0;
 $usage_total = $conn->query("SELECT SUM(liters) as t FROM milk_usage")->fetch_assoc()['t'] ?? 0;

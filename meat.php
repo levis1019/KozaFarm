@@ -1,18 +1,6 @@
 <?php
 require 'db.php';
 
-$createTableSql = "CREATE TABLE IF NOT EXISTS weight_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    goat_id INT NOT NULL,
-    log_date DATE NOT NULL,
-    live_weight DECIMAL(6,2) NOT NULL,
-    net_weight DECIMAL(6,2) DEFAULT NULL,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (goat_id) REFERENCES goats(id) ON DELETE CASCADE
-)";
-$conn->query($createTableSql);
-
 $success_msg = "";
 $error_msg = "";
 

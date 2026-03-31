@@ -1,12 +1,6 @@
 <?php
 require 'db.php';
 
-// 1. SMART UPDATER: Dodavanje kolone za Dobavljača/Partnera
-$checkVendor = $conn->query("SHOW COLUMNS FROM finances LIKE 'vendor'");
-if ($checkVendor->num_rows == 0) {
-    $conn->query("ALTER TABLE finances ADD COLUMN vendor VARCHAR(100) DEFAULT NULL");
-}
-
 // 2. AJAX & BATCH AKCIJE
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // A) INLINE EDIT (Brza izmjena)

@@ -1,16 +1,6 @@
 <?php
 require 'db.php';
 
-// --- SMART DATABASE UPDATER ---
-$checkFlag = $conn->query("SHOW COLUMNS FROM goats LIKE 'flagged'");
-if ($checkFlag->num_rows == 0) {
-    $conn->query("ALTER TABLE goats ADD COLUMN flagged TINYINT(1) DEFAULT 0");
-}
-$checkArchive = $conn->query("SHOW COLUMNS FROM goats LIKE 'archived'");
-if ($checkArchive->num_rows == 0) {
-    $conn->query("ALTER TABLE goats ADD COLUMN archived TINYINT(1) DEFAULT 0");
-}
-
 // --- AJAX HANDLERI (Za brze akcije bez učitavanja stranice) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
