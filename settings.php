@@ -6,13 +6,6 @@ $error = "";
 
 $current_user_id = $_SESSION['user_id'] ?? 0;
 
-// --- PAMETNI UPDATE BAZE ZA TO-DO ---
-$checkPriority = $conn->query("SHOW COLUMNS FROM system_todos LIKE 'priority'");
-if ($checkPriority->num_rows == 0) {
-    $conn->query("ALTER TABLE system_todos ADD COLUMN priority ENUM('low', 'medium', 'high') DEFAULT 'medium'");
-}
-// -----------------------------------
-
 // OBRADA: Promjena vlastite lozinke
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_pass'])) {
     $new_pass = password_hash($_POST['new_password'], PASSWORD_DEFAULT);

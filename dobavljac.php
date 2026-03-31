@@ -1,30 +1,6 @@
 <?php
 require 'db.php';
 
-// --- 1. SMART DATABASE SETUP ---
-$conn->query("CREATE TABLE IF NOT EXISTS suppliers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)");
-
-$conn->query("CREATE TABLE IF NOT EXISTS item_catalog_prices (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    supplier_id INT NOT NULL,
-    item_name VARCHAR(100) NOT NULL,
-    package_price DECIMAL(10,2) NOT NULL,
-    package_size DECIMAL(10,2) NOT NULL,
-    unit VARCHAR(20) NOT NULL,
-    price_per_unit DECIMAL(10,3) NOT NULL,
-    last_updated DATE NOT NULL,
-    notes VARCHAR(255)
-)");
-
-// AUTOMATSKA NADOGRADNJA BAZE: Dodavanje kategorije ako ne postoji
-$checkCat = $conn->query("SHOW COLUMNS FROM item_catalog_prices LIKE 'category'");
-if ($checkCat && $checkCat->num_rows == 0) {
-    $conn->query("ALTER TABLE item_catalog_prices ADD COLUMN category VARCHAR(50) DEFAULT 'Ostalo'");
-}
 
 $success_msg = ""; $error_msg = "";
 

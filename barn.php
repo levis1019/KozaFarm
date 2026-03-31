@@ -1,55 +1,6 @@
 <?php
 require 'db.php';
 
-// --- 1. SMART DATABASE UPDATER: Dodavanje Sirutke i Zaliha ---
-$createUsageTable = "CREATE TABLE IF NOT EXISTS milk_usage (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    usage_date DATE NOT NULL,
-    usage_type ENUM('sale', 'cheese', 'waste') NOT NULL,
-    liters DECIMAL(8,2) NOT NULL,
-    cheese_kg DECIMAL(8,2) DEFAULT NULL,
-    waste_reason VARCHAR(100) DEFAULT NULL,
-    customer_id INT DEFAULT NULL,
-    payment_type ENUM('cash', 'debt') DEFAULT NULL,
-    price_total DECIMAL(10,2) DEFAULT NULL,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)";
-$conn->query($createUsageTable);
-
-// Dodajemo kolonu za sirutku u milk_usage ako ne postoji
-$checkWhey = $conn->query("SHOW COLUMNS FROM milk_usage LIKE 'whey_liters'");
-if ($checkWhey->num_rows == 0) {
-    $conn->query("ALTER TABLE milk_usage ADD COLUMN whey_liters DECIMAL(8,2) DEFAULT 0");
-}
-
-// Tablica zaliha gotovih proizvoda (Sir, Sirutka)
-$conn->query("CREATE TABLE IF NOT EXISTS dairy_inventory (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    item_name VARCHAR(50) NOT NULL,
-    quantity DECIMAL(10,2) DEFAULT 0,
-    unit VARCHAR(20) NOT NULL
-)");
-
-// Inicijalizacija Sira i Sirutke ako je tablica prazna
-if($conn->query("SELECT id FROM dairy_inventory WHERE item_name='Sir'")->num_rows == 0) {
-    $conn->query("INSERT INTO dairy_inventory (item_name, quantity, unit) VALUES ('Sir', 0, 'kg')");
-}
-if($conn->query("SELECT id FROM dairy_inventory WHERE item_name='Sirutka'")->num_rows == 0) {
-    $conn->query("INSERT INTO dairy_inventory (item_name, quantity, unit) VALUES ('Sirutka', 0, 'L')");
-}
-
-// Tablica transakcija gotovih proizvoda
-$conn->query("CREATE TABLE IF NOT EXISTS dairy_transactions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    item_name VARCHAR(50) NOT NULL,
-    transaction_date DATE NOT NULL,
-    type ENUM('in', 'out', 'adjustment') NOT NULL,
-    quantity DECIMAL(10,2) NOT NULL,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)");
-
 $success_msg = ""; $error_msg = "";
 
 $goats_list_query = $conn->query("SELECT id, name FROM goats WHERE status = 'Mlijecna' ORDER BY id ASC");

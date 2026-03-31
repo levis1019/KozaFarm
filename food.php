@@ -1,37 +1,6 @@
 <?php
 require 'db.php';
 
-// --- 1. SMART DATABASE SETUP & UPGRADES ---
-$conn->query("CREATE TABLE IF NOT EXISTS feed_inventory (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    category ENUM('forage', 'grain', 'supplement', 'mix') NOT NULL,
-    unit ENUM('bale', 'kg', 'piece') NOT NULL,
-    quantity_in_stock DECIMAL(10,2) DEFAULT 0,
-    avg_price_per_unit DECIMAL(10,2) DEFAULT 0,
-    min_stock_limit DECIMAL(10,2) DEFAULT 0,
-    quick_feed_amount DECIMAL(10,2) DEFAULT 0
-)");
-
-$checkMinStock = $conn->query("SHOW COLUMNS FROM feed_inventory LIKE 'min_stock_limit'");
-if ($checkMinStock->num_rows == 0) {
-    $conn->query("ALTER TABLE feed_inventory ADD COLUMN min_stock_limit DECIMAL(10,2) DEFAULT 0");
-    $conn->query("ALTER TABLE feed_inventory ADD COLUMN quick_feed_amount DECIMAL(10,2) DEFAULT 0");
-    $conn->query("ALTER TABLE feed_inventory MODIFY COLUMN category ENUM('forage', 'grain', 'supplement', 'mix') NOT NULL");
-}
-
-$conn->query("CREATE TABLE IF NOT EXISTS feed_transactions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    feed_id INT NOT NULL,
-    transaction_date DATE NOT NULL,
-    type ENUM('in', 'out', 'adjustment') NOT NULL,
-    quantity DECIMAL(10,2) NOT NULL,
-    total_cost DECIMAL(10,2) DEFAULT 0,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (feed_id) REFERENCES feed_inventory(id) ON DELETE CASCADE
-)");
-
 // AUTO-CREATE THE ONE GLOBAL "SMJESA" IF IT DOESN'T EXIST
 $mix_query = $conn->query("SELECT id, name FROM feed_inventory WHERE category = 'mix' LIMIT 1");
 if ($mix_query->num_rows > 0) {
