@@ -1,0 +1,832 @@
+{
+ "duration": 38.285,
+ "stimme": "kie/gemini-2.5-pro-tts:Achird",
+ "quelle": "/root/erklaervideos/space-data-center/out/stimmen/vo_Achird_124315_832_1.wav",
+ "uebereinstimmung": 0.991,
+ "lines": [
+  {
+   "i": 0,
+   "text": "Google just launched AI chips into orbit.",
+   "start": 0.56,
+   "end": 3.37
+  },
+  {
+   "i": 1,
+   "text": "The reason is power.",
+   "start": 3.37,
+   "end": 4.7
+  },
+  {
+   "i": 2,
+   "text": "It's a test for data centers in space: one satellite, four AI chips.",
+   "start": 4.7,
+   "end": 10.03
+  },
+  {
+   "i": 3,
+   "text": "In that orbit, the sun almost never sets,",
+   "start": 10.03,
+   "end": 12.45
+  },
+  {
+   "i": 4,
+   "text": "so the panels make up to eight times more power than on Earth.",
+   "start": 12.45,
+   "end": 16.09
+  },
+  {
+   "i": 5,
+   "text": "The catch? Heat.",
+   "start": 16.09,
+   "end": 17.512
+  },
+  {
+   "i": 6,
+   "text": "There's no air to carry it off, so the chips run about fifteen minutes, then rest.",
+   "start": 17.512,
+   "end": 22.223
+  },
+  {
+   "i": 7,
+   "text": "Didn't expect this: a startup already ran Google's own AI up there.",
+   "start": 22.223,
+   "end": 27.24
+  },
+  {
+   "i": 8,
+   "text": "My take? Genius idea, insane timeline.",
+   "start": 27.24,
+   "end": 30.515
+  },
+  {
+   "i": 9,
+   "text": "Google's own project lead told NPR he doesn't expect it to get cheaper for five years.",
+   "start": 30.515,
+   "end": 36.32
+  },
+  {
+   "i": 10,
+   "text": "So, genius or insane?",
+   "start": 36.32,
+   "end": 38.285
+  }
+ ],
+ "words": [
+  {
+   "w": "google",
+   "text": "Google",
+   "line": 0,
+   "start": 0.56,
+   "end": 1.09
+  },
+  {
+   "w": "just",
+   "text": "just",
+   "line": 0,
+   "start": 1.09,
+   "end": 1.33
+  },
+  {
+   "w": "launched",
+   "text": "launched",
+   "line": 0,
+   "start": 1.33,
+   "end": 1.86
+  },
+  {
+   "w": "ai",
+   "text": "AI",
+   "line": 0,
+   "start": 1.86,
+   "end": 2.1
+  },
+  {
+   "w": "chips",
+   "text": "chips",
+   "line": 0,
+   "start": 2.1,
+   "end": 2.38
+  },
+  {
+   "w": "into",
+   "text": "into",
+   "line": 0,
+   "start": 2.38,
+   "end": 2.72
+  },
+  {
+   "w": "orbit",
+   "text": "orbit.",
+   "line": 0,
+   "start": 2.72,
+   "end": 3.37
+  },
+  {
+   "w": "the",
+   "text": "The",
+   "line": 1,
+   "start": 3.37,
+   "end": 3.62
+  },
+  {
+   "w": "reason",
+   "text": "reason",
+   "line": 1,
+   "start": 3.62,
+   "end": 4.13
+  },
+  {
+   "w": "is",
+   "text": "is",
+   "line": 1,
+   "start": 4.13,
+   "end": 4.31
+  },
+  {
+   "w": "power",
+   "text": "power.",
+   "line": 1,
+   "start": 4.31,
+   "end": 4.7
+  },
+  {
+   "w": "it",
+   "text": "It's",
+   "line": 2,
+   "start": 4.7,
+   "end": 5.09
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 2,
+   "start": 5.09,
+   "end": 5.48
+  },
+  {
+   "w": "a",
+   "text": "a",
+   "line": 2,
+   "start": 5.48,
+   "end": 5.54
+  },
+  {
+   "w": "test",
+   "text": "test",
+   "line": 2,
+   "start": 5.54,
+   "end": 5.82
+  },
+  {
+   "w": "for",
+   "text": "for",
+   "line": 2,
+   "start": 5.82,
+   "end": 6.08
+  },
+  {
+   "w": "data",
+   "text": "data",
+   "line": 2,
+   "start": 6.08,
+   "end": 6.28
+  },
+  {
+   "w": "centers",
+   "text": "centers",
+   "line": 2,
+   "start": 6.28,
+   "end": 6.95
+  },
+  {
+   "w": "in",
+   "text": "in",
+   "line": 2,
+   "start": 6.95,
+   "end": 6.98
+  },
+  {
+   "w": "space",
+   "text": "space:",
+   "line": 2,
+   "start": 6.98,
+   "end": 7.5
+  },
+  {
+   "w": "one",
+   "text": "one",
+   "line": 2,
+   "start": 7.5,
+   "end": 7.71
+  },
+  {
+   "w": "satellite",
+   "text": "satellite,",
+   "line": 2,
+   "start": 7.71,
+   "end": 8.76
+  },
+  {
+   "w": "four",
+   "text": "four",
+   "line": 2,
+   "start": 8.76,
+   "end": 9.1
+  },
+  {
+   "w": "ai",
+   "text": "AI",
+   "line": 2,
+   "start": 9.1,
+   "end": 9.41
+  },
+  {
+   "w": "chips",
+   "text": "chips.",
+   "line": 2,
+   "start": 9.41,
+   "end": 10.03
+  },
+  {
+   "w": "in",
+   "text": "In",
+   "line": 3,
+   "start": 10.03,
+   "end": 10.25
+  },
+  {
+   "w": "that",
+   "text": "that",
+   "line": 3,
+   "start": 10.25,
+   "end": 10.46
+  },
+  {
+   "w": "orbit",
+   "text": "orbit,",
+   "line": 3,
+   "start": 10.46,
+   "end": 10.98
+  },
+  {
+   "w": "the",
+   "text": "the",
+   "line": 3,
+   "start": 10.98,
+   "end": 11.21
+  },
+  {
+   "w": "sun",
+   "text": "sun",
+   "line": 3,
+   "start": 11.21,
+   "end": 11.35
+  },
+  {
+   "w": "almost",
+   "text": "almost",
+   "line": 3,
+   "start": 11.35,
+   "end": 11.77
+  },
+  {
+   "w": "never",
+   "text": "never",
+   "line": 3,
+   "start": 11.77,
+   "end": 12.11
+  },
+  {
+   "w": "sets",
+   "text": "sets,",
+   "line": 3,
+   "start": 12.11,
+   "end": 12.45
+  },
+  {
+   "w": "so",
+   "text": "so",
+   "line": 4,
+   "start": 12.45,
+   "end": 12.64
+  },
+  {
+   "w": "the",
+   "text": "the",
+   "line": 4,
+   "start": 12.64,
+   "end": 12.91
+  },
+  {
+   "w": "panels",
+   "text": "panels",
+   "line": 4,
+   "start": 12.91,
+   "end": 13.36
+  },
+  {
+   "w": "make",
+   "text": "make",
+   "line": 4,
+   "start": 13.36,
+   "end": 13.53
+  },
+  {
+   "w": "up",
+   "text": "up",
+   "line": 4,
+   "start": 13.53,
+   "end": 13.63
+  },
+  {
+   "w": "to",
+   "text": "to",
+   "line": 4,
+   "start": 13.63,
+   "end": 13.92
+  },
+  {
+   "w": "eight",
+   "text": "eight",
+   "line": 4,
+   "start": 13.92,
+   "end": 14.17
+  },
+  {
+   "w": "times",
+   "text": "times",
+   "line": 4,
+   "start": 14.17,
+   "end": 14.53
+  },
+  {
+   "w": "more",
+   "text": "more",
+   "line": 4,
+   "start": 14.53,
+   "end": 14.75
+  },
+  {
+   "w": "power",
+   "text": "power",
+   "line": 4,
+   "start": 14.75,
+   "end": 15.13
+  },
+  {
+   "w": "than",
+   "text": "than",
+   "line": 4,
+   "start": 15.13,
+   "end": 15.26
+  },
+  {
+   "w": "on",
+   "text": "on",
+   "line": 4,
+   "start": 15.26,
+   "end": 15.42
+  },
+  {
+   "w": "earth",
+   "text": "Earth.",
+   "line": 4,
+   "start": 15.42,
+   "end": 16.09
+  },
+  {
+   "w": "the",
+   "text": "The",
+   "line": 5,
+   "start": 16.09,
+   "end": 16.564
+  },
+  {
+   "w": "catch",
+   "text": "catch?",
+   "line": 5,
+   "start": 16.28,
+   "end": 17.038
+  },
+  {
+   "w": "heat",
+   "text": "Heat.",
+   "line": 5,
+   "start": 17.16,
+   "end": 17.512
+  },
+  {
+   "w": "there",
+   "text": "There's",
+   "line": 6,
+   "start": 17.512,
+   "end": 17.986
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 6,
+   "start": 17.986,
+   "end": 18.46
+  },
+  {
+   "w": "no",
+   "text": "no",
+   "line": 6,
+   "start": 18.46,
+   "end": 18.5
+  },
+  {
+   "w": "air",
+   "text": "air",
+   "line": 6,
+   "start": 18.5,
+   "end": 18.69
+  },
+  {
+   "w": "to",
+   "text": "to",
+   "line": 6,
+   "start": 18.69,
+   "end": 18.87
+  },
+  {
+   "w": "carry",
+   "text": "carry",
+   "line": 6,
+   "start": 18.87,
+   "end": 19.17
+  },
+  {
+   "w": "it",
+   "text": "it",
+   "line": 6,
+   "start": 19.17,
+   "end": 19.25
+  },
+  {
+   "w": "off",
+   "text": "off,",
+   "line": 6,
+   "start": 19.25,
+   "end": 19.53
+  },
+  {
+   "w": "so",
+   "text": "so",
+   "line": 6,
+   "start": 19.53,
+   "end": 19.57
+  },
+  {
+   "w": "the",
+   "text": "the",
+   "line": 6,
+   "start": 19.57,
+   "end": 19.8
+  },
+  {
+   "w": "chips",
+   "text": "chips",
+   "line": 6,
+   "start": 19.8,
+   "end": 20.12
+  },
+  {
+   "w": "run",
+   "text": "run",
+   "line": 6,
+   "start": 20.12,
+   "end": 20.36
+  },
+  {
+   "w": "about",
+   "text": "about",
+   "line": 6,
+   "start": 20.36,
+   "end": 20.65
+  },
+  {
+   "w": "fifteen",
+   "text": "fifteen",
+   "line": 6,
+   "start": 20.65,
+   "end": 20.94
+  },
+  {
+   "w": "minutes",
+   "text": "minutes,",
+   "line": 6,
+   "start": 20.94,
+   "end": 21.45
+  },
+  {
+   "w": "then",
+   "text": "then",
+   "line": 6,
+   "start": 21.45,
+   "end": 21.89
+  },
+  {
+   "w": "rest",
+   "text": "rest.",
+   "line": 6,
+   "start": 21.89,
+   "end": 22.223
+  },
+  {
+   "w": "didn",
+   "text": "Didn't",
+   "line": 7,
+   "start": 22.223,
+   "end": 22.557
+  },
+  {
+   "w": "t",
+   "text": "",
+   "line": 7,
+   "start": 22.557,
+   "end": 22.89
+  },
+  {
+   "w": "expect",
+   "text": "expect",
+   "line": 7,
+   "start": 22.89,
+   "end": 23.31
+  },
+  {
+   "w": "this",
+   "text": "this:",
+   "line": 7,
+   "start": 23.31,
+   "end": 23.84
+  },
+  {
+   "w": "a",
+   "text": "a",
+   "line": 7,
+   "start": 23.84,
+   "end": 23.87
+  },
+  {
+   "w": "startup",
+   "text": "startup",
+   "line": 7,
+   "start": 23.95,
+   "end": 24.36
+  },
+  {
+   "w": "already",
+   "text": "already",
+   "line": 7,
+   "start": 24.36,
+   "end": 24.87
+  },
+  {
+   "w": "ran",
+   "text": "ran",
+   "line": 7,
+   "start": 24.87,
+   "end": 25.157
+  },
+  {
+   "w": "google",
+   "text": "Google's",
+   "line": 7,
+   "start": 25.157,
+   "end": 25.443
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 7,
+   "start": 25.443,
+   "end": 25.73
+  },
+  {
+   "w": "own",
+   "text": "own",
+   "line": 7,
+   "start": 25.73,
+   "end": 26.2
+  },
+  {
+   "w": "ai",
+   "text": "AI",
+   "line": 7,
+   "start": 26.2,
+   "end": 26.415
+  },
+  {
+   "w": "up",
+   "text": "up",
+   "line": 7,
+   "start": 26.415,
+   "end": 26.63
+  },
+  {
+   "w": "there",
+   "text": "there.",
+   "line": 7,
+   "start": 26.63,
+   "end": 27.24
+  },
+  {
+   "w": "my",
+   "text": "My",
+   "line": 8,
+   "start": 27.24,
+   "end": 27.28
+  },
+  {
+   "w": "take",
+   "text": "take?",
+   "line": 8,
+   "start": 27.42,
+   "end": 28.27
+  },
+  {
+   "w": "genius",
+   "text": "Genius",
+   "line": 8,
+   "start": 28.27,
+   "end": 28.85
+  },
+  {
+   "w": "idea",
+   "text": "idea,",
+   "line": 8,
+   "start": 28.85,
+   "end": 29.41
+  },
+  {
+   "w": "insane",
+   "text": "insane",
+   "line": 8,
+   "start": 29.41,
+   "end": 30.07
+  },
+  {
+   "w": "timeline",
+   "text": "timeline.",
+   "line": 8,
+   "start": 30.07,
+   "end": 30.515
+  },
+  {
+   "w": "google",
+   "text": "Google's",
+   "line": 9,
+   "start": 30.515,
+   "end": 30.96
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 9,
+   "start": 30.96,
+   "end": 31.405
+  },
+  {
+   "w": "own",
+   "text": "own",
+   "line": 9,
+   "start": 31.405,
+   "end": 31.85
+  },
+  {
+   "w": "project",
+   "text": "project",
+   "line": 9,
+   "start": 31.85,
+   "end": 32.51
+  },
+  {
+   "w": "lead",
+   "text": "lead",
+   "line": 9,
+   "start": 32.51,
+   "end": 32.73
+  },
+  {
+   "w": "told",
+   "text": "told",
+   "line": 9,
+   "start": 32.73,
+   "end": 33.01
+  },
+  {
+   "w": "npr",
+   "text": "NPR",
+   "line": 9,
+   "start": 33.01,
+   "end": 33.35
+  },
+  {
+   "w": "he",
+   "text": "he",
+   "line": 9,
+   "start": 33.35,
+   "end": 33.527
+  },
+  {
+   "w": "doesn",
+   "text": "doesn't",
+   "line": 9,
+   "start": 33.527,
+   "end": 33.703
+  },
+  {
+   "w": "t",
+   "text": "",
+   "line": 9,
+   "start": 33.703,
+   "end": 33.88
+  },
+  {
+   "w": "expect",
+   "text": "expect",
+   "line": 9,
+   "start": 33.88,
+   "end": 34.2
+  },
+  {
+   "w": "it",
+   "text": "it",
+   "line": 9,
+   "start": 34.2,
+   "end": 34.34
+  },
+  {
+   "w": "to",
+   "text": "to",
+   "line": 9,
+   "start": 34.34,
+   "end": 34.44
+  },
+  {
+   "w": "get",
+   "text": "get",
+   "line": 9,
+   "start": 34.44,
+   "end": 34.66
+  },
+  {
+   "w": "cheaper",
+   "text": "cheaper",
+   "line": 9,
+   "start": 34.66,
+   "end": 34.96
+  },
+  {
+   "w": "for",
+   "text": "for",
+   "line": 9,
+   "start": 34.96,
+   "end": 35.26
+  },
+  {
+   "w": "five",
+   "text": "five",
+   "line": 9,
+   "start": 35.26,
+   "end": 35.51
+  },
+  {
+   "w": "years",
+   "text": "years.",
+   "line": 9,
+   "start": 35.51,
+   "end": 36.32
+  },
+  {
+   "w": "so",
+   "text": "So,",
+   "line": 10,
+   "start": 36.32,
+   "end": 36.44
+  },
+  {
+   "w": "genius",
+   "text": "genius",
+   "line": 10,
+   "start": 36.44,
+   "end": 37.23
+  },
+  {
+   "w": "or",
+   "text": "or",
+   "line": 10,
+   "start": 37.23,
+   "end": 37.32
+  },
+  {
+   "w": "insane",
+   "text": "insane?",
+   "line": 10,
+   "start": 37.32,
+   "end": 38.285
+  }
+ ]
+}
