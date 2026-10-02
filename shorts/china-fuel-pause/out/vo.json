@@ -1,0 +1,828 @@
+{
+ "duration": 39.011,
+ "stimme": "kie/gemini-2.5-pro-tts:Achird",
+ "quelle": "/root/erklaervideos/china-fuel-pause/out/stimmen/vo_Achird_112311_388_1.wav",
+ "uebereinstimmung": 0.981,
+ "lines": [
+  {
+   "i": 0,
+   "text": "U.S. diesel just hit a record.",
+   "start": 0.32,
+   "end": 2.74
+  },
+  {
+   "i": 1,
+   "text": "Now China's paused its fuel exports.",
+   "start": 2.74,
+   "end": 5.22
+  },
+  {
+   "i": 2,
+   "text": "Its big refiners stopped selling abroad for October.",
+   "start": 5.22,
+   "end": 8.26
+  },
+  {
+   "i": 3,
+   "text": "China's own fuel stocks are low.",
+   "start": 8.26,
+   "end": 10.76
+  },
+  {
+   "i": 4,
+   "text": "And the world was already short.",
+   "start": 10.76,
+   "end": 13.13
+  },
+  {
+   "i": 5,
+   "text": "War in the Middle East.",
+   "start": 13.13,
+   "end": 14.33
+  },
+  {
+   "i": 6,
+   "text": "Russia's holding back diesel.",
+   "start": 14.33,
+   "end": 16.55
+  },
+  {
+   "i": 7,
+   "text": "Diesel moves your food and almost everything else.",
+   "start": 16.55,
+   "end": 19.41
+  },
+  {
+   "i": 8,
+   "text": "Trucks, ships, tractors.",
+   "start": 19.41,
+   "end": 21.223
+  },
+  {
+   "i": 9,
+   "text": "Here's my take: China's fuel doesn't have to reach you.",
+   "start": 21.223,
+   "end": 25.157
+  },
+  {
+   "i": 10,
+   "text": "It's one world pool.",
+   "start": 25.157,
+   "end": 27.34
+  },
+  {
+   "i": 11,
+   "text": "A seller steps out, everyone bids up the rest.",
+   "start": 27.34,
+   "end": 30.72
+  },
+  {
+   "i": 12,
+   "text": "Watch October seventh, when China's holiday ends.",
+   "start": 30.72,
+   "end": 33.64
+  },
+  {
+   "i": 13,
+   "text": "Nobody knows if exports restart.",
+   "start": 33.64,
+   "end": 36.22
+  },
+  {
+   "i": 14,
+   "text": "Pump or groceries: where would you notice first?",
+   "start": 36.33,
+   "end": 39.011
+  }
+ ],
+ "words": [
+  {
+   "w": "u",
+   "text": "U.S.",
+   "line": 0,
+   "start": 0.32,
+   "end": 0.32
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 0,
+   "start": 0.32,
+   "end": 0.83
+  },
+  {
+   "w": "diesel",
+   "text": "diesel",
+   "line": 0,
+   "start": 0.83,
+   "end": 1.24
+  },
+  {
+   "w": "just",
+   "text": "just",
+   "line": 0,
+   "start": 1.24,
+   "end": 1.55
+  },
+  {
+   "w": "hit",
+   "text": "hit",
+   "line": 0,
+   "start": 1.55,
+   "end": 1.59
+  },
+  {
+   "w": "a",
+   "text": "a",
+   "line": 0,
+   "start": 1.59,
+   "end": 1.68
+  },
+  {
+   "w": "record",
+   "text": "record.",
+   "line": 0,
+   "start": 1.68,
+   "end": 2.74
+  },
+  {
+   "w": "now",
+   "text": "Now",
+   "line": 1,
+   "start": 2.74,
+   "end": 3.0
+  },
+  {
+   "w": "china",
+   "text": "China's",
+   "line": 1,
+   "start": 3.0,
+   "end": 3.26
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 1,
+   "start": 3.26,
+   "end": 3.52
+  },
+  {
+   "w": "paused",
+   "text": "paused",
+   "line": 1,
+   "start": 3.52,
+   "end": 3.79
+  },
+  {
+   "w": "its",
+   "text": "its",
+   "line": 1,
+   "start": 3.79,
+   "end": 4.02
+  },
+  {
+   "w": "fuel",
+   "text": "fuel",
+   "line": 1,
+   "start": 4.02,
+   "end": 4.32
+  },
+  {
+   "w": "exports",
+   "text": "exports.",
+   "line": 1,
+   "start": 4.32,
+   "end": 5.22
+  },
+  {
+   "w": "its",
+   "text": "Its",
+   "line": 2,
+   "start": 5.22,
+   "end": 5.51
+  },
+  {
+   "w": "big",
+   "text": "big",
+   "line": 2,
+   "start": 5.51,
+   "end": 5.75
+  },
+  {
+   "w": "refiners",
+   "text": "refiners",
+   "line": 2,
+   "start": 5.75,
+   "end": 6.17
+  },
+  {
+   "w": "stopped",
+   "text": "stopped",
+   "line": 2,
+   "start": 6.17,
+   "end": 6.78
+  },
+  {
+   "w": "selling",
+   "text": "selling",
+   "line": 2,
+   "start": 6.78,
+   "end": 7.18
+  },
+  {
+   "w": "abroad",
+   "text": "abroad",
+   "line": 2,
+   "start": 7.18,
+   "end": 7.54
+  },
+  {
+   "w": "for",
+   "text": "for",
+   "line": 2,
+   "start": 7.54,
+   "end": 7.78
+  },
+  {
+   "w": "october",
+   "text": "October.",
+   "line": 2,
+   "start": 7.78,
+   "end": 8.26
+  },
+  {
+   "w": "china",
+   "text": "China's",
+   "line": 3,
+   "start": 8.26,
+   "end": 8.74
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 3,
+   "start": 8.74,
+   "end": 9.22
+  },
+  {
+   "w": "own",
+   "text": "own",
+   "line": 3,
+   "start": 9.22,
+   "end": 9.33
+  },
+  {
+   "w": "fuel",
+   "text": "fuel",
+   "line": 3,
+   "start": 9.33,
+   "end": 9.53
+  },
+  {
+   "w": "stocks",
+   "text": "stocks",
+   "line": 3,
+   "start": 9.53,
+   "end": 9.96
+  },
+  {
+   "w": "are",
+   "text": "are",
+   "line": 3,
+   "start": 9.96,
+   "end": 10.1
+  },
+  {
+   "w": "low",
+   "text": "low.",
+   "line": 3,
+   "start": 10.1,
+   "end": 10.76
+  },
+  {
+   "w": "and",
+   "text": "And",
+   "line": 4,
+   "start": 10.76,
+   "end": 11.03
+  },
+  {
+   "w": "the",
+   "text": "the",
+   "line": 4,
+   "start": 11.03,
+   "end": 11.2
+  },
+  {
+   "w": "world",
+   "text": "world",
+   "line": 4,
+   "start": 11.2,
+   "end": 11.56
+  },
+  {
+   "w": "was",
+   "text": "was",
+   "line": 4,
+   "start": 11.56,
+   "end": 11.79
+  },
+  {
+   "w": "already",
+   "text": "already",
+   "line": 4,
+   "start": 11.79,
+   "end": 12.35
+  },
+  {
+   "w": "short",
+   "text": "short.",
+   "line": 4,
+   "start": 12.35,
+   "end": 13.13
+  },
+  {
+   "w": "war",
+   "text": "War",
+   "line": 5,
+   "start": 13.13,
+   "end": 13.25
+  },
+  {
+   "w": "in",
+   "text": "in",
+   "line": 5,
+   "start": 13.25,
+   "end": 13.4
+  },
+  {
+   "w": "the",
+   "text": "the",
+   "line": 5,
+   "start": 13.4,
+   "end": 13.68
+  },
+  {
+   "w": "middle",
+   "text": "Middle",
+   "line": 5,
+   "start": 13.68,
+   "end": 14.01
+  },
+  {
+   "w": "east",
+   "text": "East.",
+   "line": 5,
+   "start": 14.01,
+   "end": 14.33
+  },
+  {
+   "w": "russia",
+   "text": "Russia's",
+   "line": 6,
+   "start": 14.47,
+   "end": 14.65
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 6,
+   "start": 14.65,
+   "end": 14.97
+  },
+  {
+   "w": "holding",
+   "text": "holding",
+   "line": 6,
+   "start": 14.97,
+   "end": 15.53
+  },
+  {
+   "w": "back",
+   "text": "back",
+   "line": 6,
+   "start": 15.53,
+   "end": 15.75
+  },
+  {
+   "w": "diesel",
+   "text": "diesel.",
+   "line": 6,
+   "start": 15.75,
+   "end": 16.55
+  },
+  {
+   "w": "diesel",
+   "text": "Diesel",
+   "line": 7,
+   "start": 16.55,
+   "end": 16.825
+  },
+  {
+   "w": "moves",
+   "text": "moves",
+   "line": 7,
+   "start": 16.825,
+   "end": 17.1
+  },
+  {
+   "w": "your",
+   "text": "your",
+   "line": 7,
+   "start": 17.1,
+   "end": 17.32
+  },
+  {
+   "w": "food",
+   "text": "food",
+   "line": 7,
+   "start": 17.32,
+   "end": 17.61
+  },
+  {
+   "w": "and",
+   "text": "and",
+   "line": 7,
+   "start": 17.61,
+   "end": 17.75
+  },
+  {
+   "w": "almost",
+   "text": "almost",
+   "line": 7,
+   "start": 17.75,
+   "end": 18.21
+  },
+  {
+   "w": "everything",
+   "text": "everything",
+   "line": 7,
+   "start": 18.21,
+   "end": 18.85
+  },
+  {
+   "w": "else",
+   "text": "else.",
+   "line": 7,
+   "start": 18.85,
+   "end": 19.41
+  },
+  {
+   "w": "trucks",
+   "text": "Trucks,",
+   "line": 8,
+   "start": 19.41,
+   "end": 20.16
+  },
+  {
+   "w": "ships",
+   "text": "ships,",
+   "line": 8,
+   "start": 20.16,
+   "end": 20.77
+  },
+  {
+   "w": "tractors",
+   "text": "tractors.",
+   "line": 8,
+   "start": 20.77,
+   "end": 21.223
+  },
+  {
+   "w": "here",
+   "text": "Here's",
+   "line": 9,
+   "start": 21.223,
+   "end": 21.677
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 9,
+   "start": 21.677,
+   "end": 22.13
+  },
+  {
+   "w": "my",
+   "text": "my",
+   "line": 9,
+   "start": 22.13,
+   "end": 22.32
+  },
+  {
+   "w": "take",
+   "text": "take:",
+   "line": 9,
+   "start": 22.32,
+   "end": 22.74
+  },
+  {
+   "w": "china",
+   "text": "China's",
+   "line": 9,
+   "start": 23.13,
+   "end": 23.16
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 9,
+   "start": 23.16,
+   "end": 23.58
+  },
+  {
+   "w": "fuel",
+   "text": "fuel",
+   "line": 9,
+   "start": 23.58,
+   "end": 23.81
+  },
+  {
+   "w": "doesn",
+   "text": "doesn't",
+   "line": 9,
+   "start": 23.81,
+   "end": 24.04
+  },
+  {
+   "w": "t",
+   "text": "",
+   "line": 9,
+   "start": 24.04,
+   "end": 24.27
+  },
+  {
+   "w": "have",
+   "text": "have",
+   "line": 9,
+   "start": 24.27,
+   "end": 24.6
+  },
+  {
+   "w": "to",
+   "text": "to",
+   "line": 9,
+   "start": 24.6,
+   "end": 24.61
+  },
+  {
+   "w": "reach",
+   "text": "reach",
+   "line": 9,
+   "start": 24.7,
+   "end": 24.9
+  },
+  {
+   "w": "you",
+   "text": "you.",
+   "line": 9,
+   "start": 24.9,
+   "end": 25.157
+  },
+  {
+   "w": "it",
+   "text": "It's",
+   "line": 10,
+   "start": 25.157,
+   "end": 25.413
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 10,
+   "start": 25.413,
+   "end": 25.67
+  },
+  {
+   "w": "one",
+   "text": "one",
+   "line": 10,
+   "start": 25.67,
+   "end": 25.96
+  },
+  {
+   "w": "world",
+   "text": "world",
+   "line": 10,
+   "start": 25.96,
+   "end": 26.55
+  },
+  {
+   "w": "pool",
+   "text": "pool.",
+   "line": 10,
+   "start": 26.55,
+   "end": 27.34
+  },
+  {
+   "w": "a",
+   "text": "A",
+   "line": 11,
+   "start": 27.34,
+   "end": 27.37
+  },
+  {
+   "w": "seller",
+   "text": "seller",
+   "line": 11,
+   "start": 27.37,
+   "end": 27.88
+  },
+  {
+   "w": "steps",
+   "text": "steps",
+   "line": 11,
+   "start": 27.88,
+   "end": 28.1
+  },
+  {
+   "w": "out",
+   "text": "out,",
+   "line": 11,
+   "start": 28.1,
+   "end": 28.7
+  },
+  {
+   "w": "everyone",
+   "text": "everyone",
+   "line": 11,
+   "start": 28.7,
+   "end": 29.25
+  },
+  {
+   "w": "bids",
+   "text": "bids",
+   "line": 11,
+   "start": 29.25,
+   "end": 29.48
+  },
+  {
+   "w": "up",
+   "text": "up",
+   "line": 11,
+   "start": 29.48,
+   "end": 29.62
+  },
+  {
+   "w": "the",
+   "text": "the",
+   "line": 11,
+   "start": 29.62,
+   "end": 29.93
+  },
+  {
+   "w": "rest",
+   "text": "rest.",
+   "line": 11,
+   "start": 29.93,
+   "end": 30.72
+  },
+  {
+   "w": "watch",
+   "text": "Watch",
+   "line": 12,
+   "start": 30.72,
+   "end": 30.99
+  },
+  {
+   "w": "october",
+   "text": "October",
+   "line": 12,
+   "start": 30.99,
+   "end": 31.49
+  },
+  {
+   "w": "seventh",
+   "text": "seventh,",
+   "line": 12,
+   "start": 31.49,
+   "end": 31.99
+  },
+  {
+   "w": "when",
+   "text": "when",
+   "line": 12,
+   "start": 31.99,
+   "end": 32.21
+  },
+  {
+   "w": "china",
+   "text": "China's",
+   "line": 12,
+   "start": 32.21,
+   "end": 32.43
+  },
+  {
+   "w": "s",
+   "text": "",
+   "line": 12,
+   "start": 32.43,
+   "end": 32.65
+  },
+  {
+   "w": "holiday",
+   "text": "holiday",
+   "line": 12,
+   "start": 32.65,
+   "end": 32.96
+  },
+  {
+   "w": "ends",
+   "text": "ends.",
+   "line": 12,
+   "start": 32.96,
+   "end": 33.64
+  },
+  {
+   "w": "nobody",
+   "text": "Nobody",
+   "line": 13,
+   "start": 33.64,
+   "end": 34.0
+  },
+  {
+   "w": "knows",
+   "text": "knows",
+   "line": 13,
+   "start": 34.0,
+   "end": 34.34
+  },
+  {
+   "w": "if",
+   "text": "if",
+   "line": 13,
+   "start": 34.34,
+   "end": 34.53
+  },
+  {
+   "w": "exports",
+   "text": "exports",
+   "line": 13,
+   "start": 34.53,
+   "end": 35.02
+  },
+  {
+   "w": "restart",
+   "text": "restart.",
+   "line": 13,
+   "start": 35.02,
+   "end": 36.22
+  },
+  {
+   "w": "pump",
+   "text": "Pump",
+   "line": 14,
+   "start": 36.33,
+   "end": 36.71
+  },
+  {
+   "w": "or",
+   "text": "or",
+   "line": 14,
+   "start": 36.71,
+   "end": 36.76
+  },
+  {
+   "w": "groceries",
+   "text": "groceries:",
+   "line": 14,
+   "start": 36.76,
+   "end": 37.86
+  },
+  {
+   "w": "where",
+   "text": "where",
+   "line": 14,
+   "start": 37.86,
+   "end": 37.94
+  },
+  {
+   "w": "would",
+   "text": "would",
+   "line": 14,
+   "start": 37.94,
+   "end": 38.15
+  },
+  {
+   "w": "you",
+   "text": "you",
+   "line": 14,
+   "start": 38.15,
+   "end": 38.4
+  },
+  {
+   "w": "notice",
+   "text": "notice",
+   "line": 14,
+   "start": 38.4,
+   "end": 38.57
+  },
+  {
+   "w": "first",
+   "text": "first?",
+   "line": 14,
+   "start": 38.57,
+   "end": 39.011
+  }
+ ]
+}
