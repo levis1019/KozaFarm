@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Quick Why · China fuel pause</title>
+<style>
+@font-face{font-family:"IS";src:url(fonts/InstrumentSans-600.woff2) format("woff2");font-weight:400 700}
+@font-face{font-family:"SS4";src:url(fonts/SourceSerif4-600.woff2) format("woff2");font-weight:200 900}
+html,body{margin:0;background:#EDEFED;overflow:hidden}
+canvas{display:block}
+</style></head>
+<body><canvas id="c" width="1080" height="1920"></canvas>
+<script src="zeiten.js"></script>
+<script src="map.js"></script>
+<script>
+// Quick Why — "China paused its fuel exports". Thin-line map (style 17 principles) that turns into a
+// thin-line diagram chain (style 16 principles). One neutral base, one accent (fuel = orange).
+// Every frame is a pure function of t. All key times come from K (measured word times).
+const W = 1080, H = 1920;
+const P = { bg: '#EDEFED', land: '#DADFDA', edge: '#3B4045', ink: '#1C2024', mute: '#8B9399', faint: '#C2C8C4',
+  card: '#FAFBFA', accent: '#D9480F', water: '#D3D9D5' };
+const SANS = '"IS", system-ui, sans-serif', SERIF = '"SS4", Georgia, serif';
+const cv = document.getElementById('c'), g = cv.getContext('2d');
+
+// ---------- maths ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lin = (t, a, b) => clamp((t - a) / (b - a));
+const mix = (a, b, k) => a + (b - a) * k;
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const es = x => x * x * (3 - 2 * x);
+const spring = x => x <= 0 ? 0 : x >= 3 ? 1 : 1 - Math.exp(-6.5 * x) * Math.cos(10.5 * x);      // small overshoot
+const pop = (t, k, d = .32) => spring(lin(t, k - d, k - d + .9) * 1.6);                          // lands on k with weight
+const at = (t, k, d = .3) => eo(lin(t, k - d, k - .02));                                          // done by word start
+const env = (t, a, b, fi = .3, fo = .3) => Math.min(eo(lin(t, a - fi, a)), 1 - eo(lin(t, b, b + fo)));
+function hash(i, s) { let h = Math.imul((i | 0) ^ Math.imul(s | 0, 374761393), 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+function vn(x, s = 0) { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return mix(hash(i, s), hash(i + 1, s), u) * 2 - 1; }
+function mixHex(a, b, k) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return `rgb(${A.map((v, i) => Math.round(mix(v, B[i], k))).join(',')})`; }
+
+// ---------- polylines ----------
+function plen(p) { const L = [0]; for (let i = 1; i < p.length; i++) L.push(L[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1])); return L; }
+function ptAt(p, L, u) { const d = clamp(u) * L[L.length - 1]; let i = 1; while (i < L.length - 1 && L[i] < d) i++; const k = (d - L[i - 1]) / ((L[i] - L[i - 1]) || 1); return [mix(p[i - 1][0], p[i][0], k), mix(p[i - 1][1], p[i][1], k)]; }
+function strokeTo(p, u0, u1, L = plen(p)) {
+  if (u1 <= u0) return; const tot = L[L.length - 1], d0 = u0 * tot, d1 = u1 * tot;
+  const a = ptAt(p, L, u0); g.beginPath(); g.moveTo(a[0], a[1]);
+  for (let i = 1; i < p.length; i++) if (L[i] > d0 && L[i] < d1) g.lineTo(p[i][0], p[i][1]);
+  const b = ptAt(p, L, u1); g.lineTo(b[0], b[1]); g.stroke();
+}
+function circ(cx, cy, r, a0 = 0, a1 = Math.PI * 2, n = 56) { const o = []; for (let i = 0; i <= n; i++) { const a = mix(a0, a1, i / n); o.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return o; }
+function rect(x, y, w, h) { return [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]; }
+function rrect(x, y, w, h, r) { const o = []; const c = [[x + w - r, y + r, -Math.PI / 2, 0], [x + w - r, y + h - r, 0, Math.PI / 2], [x + r, y + h - r, Math.PI / 2, Math.PI], [x + r, y + r, Math.PI, Math.PI * 1.5]];
+  for (const [cx, cy, a0, a1] of c) o.push(...circ(cx, cy, r, a0, a1, 8)); o.push(o[0]); return o; }
+function chaikin(p, n = 3) { for (let k = 0; k < n; k++) { const q = [p[0]]; for (let i = 0; i < p.length - 1; i++) { const a = p[i], b = p[i + 1]; q.push([a[0] * .75 + b[0] * .25, a[1] * .75 + b[1] * .25], [a[0] * .25 + b[0] * .75, a[1] * .25 + b[1] * .75]); } q.push(p[p.length - 1]); p = q; } return p; }
+function fillPoly(p) { g.beginPath(); p.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.fill(); }
+
+// ---------- glyphs: list of shapes in local units; drawn progressively ----------
+// shape = { p: points, f: fill colour or null }
+const DROP = (() => { const cy = 12, r = 46, tip = [0, -78], b = Math.acos(r / (cy - tip[1]));
+  return [{ p: [tip, ...circ(0, cy, r, -Math.PI / 2 + b, Math.PI * 1.5 - b, 40), tip], f: P.card }]; })();
+const TRUCK = [
+  { p: rect(-100, -50, 120, 75), f: P.card }, { p: [[20, 25], [20, -28], [62, -28], [92, 2], [92, 25], [20, 25]], f: P.card },
+  { p: [[30, -20], [58, -20], [76, -2], [30, -2], [30, -20]] },
+  { p: circ(-66, 32, 13), f: P.card }, { p: circ(-30, 32, 13), f: P.card }, { p: circ(64, 32, 13), f: P.card }, { p: [[-124, 47], [118, 47]] }];
+const SHIP = [
+  { p: [[-124, 0], [124, 0], [102, 42], [-106, 42], [-124, 0]], f: P.card }, { p: rect(70, -52, 36, 52), f: P.card },
+  { p: rect(82, -74, 12, 22), f: P.card }, { p: circ(-80, 0, 18, Math.PI, Math.PI * 2, 12) }, { p: circ(-36, 0, 18, Math.PI, Math.PI * 2, 12) }, { p: circ(8, 0, 18, Math.PI, Math.PI * 2, 12) },
+  { p: [[-150, 54], [-112, 54]] }, { p: [[112, 54], [150, 54]] }];
+const TRACTOR = [
+  { p: [[-40, -24], [-40, -84], [14, -84], [24, -24]], f: null }, { p: [[-10, -24], [84, -24], [84, 10], [-10, 10], [-10, -24]], f: P.card },
+  { p: circ(-40, 12, 38), f: P.card }, { p: circ(-40, 12, 12) }, { p: circ(62, 30, 20), f: P.card }, { p: [[66, -24], [66, -56]] }, { p: [[-112, 50], [112, 50]] }];
+const CRATE = [
+  { p: circ(-34, -52, 24), f: P.card }, { p: circ(14, -56, 22), f: P.card }, { p: circ(52, -48, 18), f: P.card },
+  { p: [[-34, -76], [-30, -90]] }, { p: [[14, -78], [20, -92], [36, -96]] },
+  { p: rect(-84, -32, 168, 82), f: P.card }, { p: [[-84, -4], [84, -4]] }, { p: [[-84, 22], [84, 22]] }];
+const PARCEL = [{ p: rect(-52, -42, 104, 84), f: P.card }, { p: [[-52, -42], [-30, -62], [74, -62], [52, -42]], f: P.card }, { p: [[74, -62], [74, 22], [52, 42]] }, { p: [[0, -42], [22, -62]] }];
+const REFINERY = [{ p: [[-56, 0], [56, 0]] }, { p: rect(-8, -66, 16, 66), f: P.card }, { p: [[-44, 0], [-44, -26], ...circ(-32, -26, 12, Math.PI, Math.PI * 2, 8), [-20, 0]], f: P.card },
+  { p: [[14, 0], [14, -32], ...circ(30, -32, 16, Math.PI, Math.PI * 2, 8), [46, 0]], f: P.card }];
+const PUMP = [
+  { p: rrect(-64, -130, 128, 232, 14), f: P.card }, { p: rrect(-42, -106, 84, 66, 8) },
+  { p: [[64, -40], [92, -34], [100, -10], [100, 70]] }, { p: [[78, -62], [110, -62], [112, -44]] }, { p: [[-86, 102], [86, 102]] }, { p: [[-40, 0], [40, 0]] }];
+const BAG = [
+  { p: [[-30, -46], [-40, -96]] }, { p: circ(26, -70, 22), f: P.card }, { p: [[0, -50], [10, -104], [22, -112]] },
+  { p: [[-66, -44], [66, -44], [54, 92], [-54, 92], [-66, -44]], f: P.card }, { p: circ(0, -44, 30, Math.PI, Math.PI * 2, 14) }];
+const TAG = [{ p: [[-74, -42], [40, -42], [80, 0], [40, 42], [-74, 42], [-74, -42]], f: P.card }, { p: circ(40, 0, 8) }];
+const HOUSE = [{ p: [[-54, 44], [-54, -8], [0, -54], [54, -8], [54, 44], [-54, 44]], f: P.card }, { p: rect(-14, 10, 28, 34) }];
+function glyph(shapes, x, y, s, u, lw = 4.5, col = P.ink, alpha = 1) {
+  if (u <= 0 || alpha <= 0) return;
+  g.save(); g.translate(x, y); g.scale(s, s); g.globalAlpha *= alpha;
+  g.lineWidth = lw / s; g.strokeStyle = col; g.lineCap = 'round'; g.lineJoin = 'round';
+  const n = shapes.length, fk = clamp((u - .55) / .45);
+  if (fk > 0) shapes.forEach(sh => { if (sh.f) { g.fillStyle = sh.f; g.globalAlpha = alpha * fk; fillPoly(sh.p); g.globalAlpha = alpha; } });
+  shapes.forEach((sh, i) => strokeTo(sh.p, 0, clamp(u * (n * .55 + 1) - i * .55)));
+  g.restore();
+}
+function word(s, x, y, size, col = P.ink, k = 1, opt = {}) {
+  if (k <= 0) return 0; g.save();
+  g.font = `${opt.w || 600} ${size}px ${opt.serif ? SERIF : SANS}`; g.textAlign = opt.align || 'center'; g.textBaseline = 'alphabetic';
+  g.globalAlpha *= clamp(k * 1.4); g.fillStyle = col;
+  const rise = (1 - eo(clamp(k))) * (opt.rise ?? 14);
+  if (opt.halo) { g.lineJoin = 'round'; g.strokeStyle = P.bg; g.lineWidth = opt.halo; g.strokeText(s, x, y + rise); }
+  g.fillText(s, x, y + rise); const w = g.measureText(s).width; g.restore(); return w;
+}
+function strike(x0, x1, y, k, lw = 10) { if (k <= 0) return; g.save(); g.strokeStyle = P.accent; g.lineWidth = lw; g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y); g.lineTo(mix(x0, x1, eio(k)), y); g.stroke(); g.restore(); }
+function wobRing(cx, cy, r, u, seed, lw = 6, col = P.accent) {   // hand-drawn ring, overlaps its start like a pen
+  if (u <= 0) return; const pts = [];
+  for (let i = 0; i <= 90; i++) { const a = -Math.PI * .62 + i / 90 * Math.PI * 2.18, rr = r * (1 + .05 * vn(i / 9, seed) + .02 * (i / 90)); pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * .96]); }
+  g.save(); g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.lineJoin = 'round'; strokeTo(pts, 0, eio(u)); g.restore();
+}
+function arrowUp(x, y, len, k, lw = 9, col = P.accent) { if (k <= 0) return; g.save(); g.globalAlpha *= clamp(k * 2); g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.lineJoin = 'round';
+  const yy = y - len * eo(clamp(k)); g.beginPath(); g.moveTo(x, y); g.lineTo(x, yy); g.moveTo(x - len * .3, yy + len * .3); g.lineTo(x, yy); g.lineTo(x + len * .3, yy + len * .3); g.stroke(); g.restore(); }
+function arrowDown(x, y, len, k, lw = 9, col = P.accent) { if (k <= 0) return; g.save(); g.globalAlpha *= clamp(k * 2); g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.lineJoin = 'round';
+  const yy = y + len * eo(clamp(k)); g.beginPath(); g.moveTo(x, y); g.lineTo(x, yy); g.moveTo(x - len * .3, yy - len * .3); g.lineTo(x, yy); g.lineTo(x + len * .3, yy - len * .3); g.stroke(); g.restore(); }
+
+// ---------- map projection (same as map.js) ----------
+const RAD = Math.PI / 180, MY0 = Math.log(Math.tan(Math.PI / 4 + MAP.lat0 * RAD / 2));
+function proj(lon, lat) { return [(lon - MAP.lon0) * RAD * MAP.S, -(Math.log(Math.tan(Math.PI / 4 + lat * RAD / 2)) - MY0) * MAP.S]; }
+const route = ll => { const p = chaikin(ll.map(([a, b]) => proj(a, b)), 3); return { p, L: plen(p) }; };
+const R_CN = [
+  [[122.2, 29.95], [125, 24], [122.5, 17.5], [120.9, 14.6]],
+  [[122.2, 29.95], [129, 20], [136, 3], [147, -12], [154, -26], [151.6, -33.6]],
+  [[114.6, 22.6], [112.5, 16], [108.5, 11.6], [106.8, 10.5]],
+  [[114.6, 22.6], [113, 14], [108, 5], [104.2, 1.6]],
+  [[114.6, 22.6], [112, 12], [105.5, 3.2], [99.5, 5], [94, 13], [91.8, 21.6]],
+  [[121.6, 38.9], [123.5, 35], [125.5, 30], [126, 25], [123.5, 19]]
+].map(route);
+const R_ME = [
+  [[56.4, 26.6], [59.5, 22.5], [64, 18], [74, 9], [80.5, 5.6], [92, 5.8], [100, 3.6], [103.5, 1.5]],
+  [[56.4, 26.6], [60, 22.6], [66, 20.6], [72.6, 19.1]],
+  [[56.4, 26.6], [58, 22], [53, 15], [45.5, 12.4], [41.5, 15.5], [37, 22], [33.2, 28.6]]
+].map(route);
+const R_RU = [
+  [[28.6, 60.3], [25, 59.6], [20, 58.4], [15, 56], [11, 55.3]],
+  [[37.8, 44.7], [33.5, 43.3], [29.2, 41.3], [26, 39.6], [22, 36.4]],
+  [[132.9, 42.8], [134, 38], [131.5, 34.5], [129, 33.6]]
+].map(route);
+const RING = r => { const p = new Path2D(); for (let i = 0; i < r.length; i += 2) i ? p.lineTo(r[i], r[i + 1]) : p.moveTo(r[i], r[i + 1]); p.closePath(); return p; };
+let LAND, CHINA, RUSSIA;
+function buildPaths() { LAND = new Path2D(); MAP.land.forEach(r => LAND.addPath(RING(r))); CHINA = new Path2D(); MAP.china.forEach(r => CHINA.addPath(RING(r))); RUSSIA = new Path2D(); MAP.russia.forEach(r => RUSSIA.addPath(RING(r))); }
+const LL = { zhoushan: [122.2, 29.95], dalian: [121.6, 38.9], huizhou: [114.6, 22.6], gulf: [52.5, 26.6], mideast: [44.5, 20.8], russia: [88, 61.5], china: [103.5, 34.5],
+  calendar: [126.6, 22.2], qmark: [126.2, 34.6], refl: [122.6, 36.4] };
+const WP = Object.fromEntries(Object.entries(LL).map(([k, v]) => [k, proj(...v)]));
+
+// ---------- map camera ----------
+// keys: [time, lon, lat, zoom]; zoom interpolates in log space; ease in-out between keys
+function camKeys() {
+  return [
+    [0, 122.2, 29.95, 10], [K.now - .32, 122.2, 29.95, 10],
+    [K.now + .45, 114, 21, 1.3], [K.refiners - .55, 114.5, 22, 1.36],
+    [K.refiners - .08, 119.5, 30.5, 2.5], [K.stocks0 - .5, 120, 30.6, 2.62],
+    [K.stocks0 - .02, 122.2, 29.95, 9], [K.world - .3, 122.2, 29.95, 9],
+    [K.world + .55, 80, 30, .54], [K.war - .2, 78, 31, .56], [K.middle + .5, 66, 33, .66], [K.russia + .6, 74, 41, .62], [K.diesel3 - .1, 76, 40, .7],
+    [K.watch - .5, 112, 27, 1.9], [K.watch - .02, 120, 29, 2.15], [K.pump - .2, 121, 29.5, 2.4], [DUR, 121, 29.5, 2.6]];
+}
+let KEYS;
+function camAt(t) {
+  let i = 0; while (i < KEYS.length - 2 && KEYS[i + 1][0] <= t) i++;
+  const A = KEYS[i], B = KEYS[i + 1], u = eio(lin(t, A[0], B[0]));
+  const a = proj(A[1], A[2]), b = proj(B[1], B[2]);
+  const z = Math.exp(mix(Math.log(A[3]), Math.log(B[3]), u));
+  // move the focus in proportion to log-zoom change, so big zooms feel like one continuous push
+  return { x: mix(a[0], b[0], u), y: mix(a[1], b[1], u), z };
+}
+function driftXY(t) { const e = lin(t, 0, 1.1); return [e * (26 * Math.sin(t * .43) + 9 * Math.sin(t * 1.07 + 2)), e * (22 * Math.sin(t * .31 + 1) + 7 * Math.sin(t * .89))]; }
+let CAM = { x: 0, y: 0, z: 1 };
+const toS = (wx, wy) => [(wx - CAM.x) * CAM.z + W / 2, (wy - CAM.y) * CAM.z + H / 2];
+
+// ---------- map layer ----------
+function drawRoutes(set, t, state) {
+  // state: {grow, off (0 flowing orange .. 1 grey dashed), probe (0..1 orange probe length), width}
+  set.forEach((r, i) => {
+    const grow = state.grow(i); if (grow <= 0) return;
+    const off = state.off, z = CAM.z;
+    g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+    g.strokeStyle = mixHex(P.accent, P.mute, off); g.lineWidth = mix(state.width || 4.2, 2.6, off) / z;
+    if (off > .02) g.setLineDash([9 / z, 10 / z]);
+    g.globalAlpha = mix(1, .8, off); strokeTo(r.p, 0, grow, r.L); g.setLineDash([]);
+    if (state.probe > 0) { g.strokeStyle = P.accent; g.globalAlpha = 1; g.lineWidth = 4.2 / z; strokeTo(r.p, 0, state.probe * .45, r.L); }
+    // tankers: filled dots riding the line; they stop and fade when the flow stops
+    const flow = 1 - off;
+    for (let k = 0; k < 4; k++) {
+      const u = ((state.phase + k / 4 + i * .17) % 1); if (u > grow) continue;
+      const a = flow * Math.min(1, Math.sin(Math.PI * u) * 3); if (a <= .02) continue;
+      const q = ptAt(r.p, r.L, u); g.globalAlpha = a; g.fillStyle = P.accent; g.beginPath(); g.arc(q[0], q[1], 7 / z, 0, 7); g.fill();
+    }
+    g.restore();
+  });
+}
+function hatch(path, k, t, spacing = 16, lw = 2.2, col = P.ink, alpha = .55) {
+  if (k <= 0) return; g.save(); g.clip(path); g.setTransform(1, 0, 0, 1, 0, 0);
+  g.strokeStyle = col; g.globalAlpha = alpha * clamp(k * 1.5); g.lineWidth = lw; g.beginPath();
+  const off = (t * 6) % spacing;
+  for (let d = 0; d < W + H + spacing; d += spacing) { const x0 = d + off; g.moveTo(x0, 0); g.lineTo(x0 - H, H); }
+  g.stroke(); g.restore();
+}
+function drawMap(t, alpha) {
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha = alpha;
+  g.setTransform(CAM.z, 0, 0, CAM.z, W / 2 - CAM.x * CAM.z, H / 2 - CAM.y * CAM.z);
+  g.fillStyle = P.land; g.fill(LAND);
+  const cn = Math.max(at(t, K.china1, .5) * (1 - env(t, K.war, K.diesel3, .4, .3) * .6), 0);
+  if (cn > 0) { g.fillStyle = mixHex(P.land, '#C6CCC7', cn); g.fill(CHINA); }
+  g.strokeStyle = P.edge; g.lineWidth = 1.5 / CAM.z; g.lineJoin = 'round'; g.stroke(LAND);
+  if (cn > 0) { g.lineWidth = mix(1.5, 3, cn) / CAM.z; g.stroke(CHINA); }
+  // Russia and Middle East: hatched when their supply is held back
+  const ru = at(t, K.russia, .35) * (1 - lin(t, K.diesel3 - .4, K.diesel3));
+  if (ru > 0) { hatch(RUSSIA, ru, t, 18, 2.2, P.ink, .38); g.setTransform(CAM.z, 0, 0, CAM.z, W / 2 - CAM.x * CAM.z, H / 2 - CAM.y * CAM.z); g.strokeStyle = P.ink; g.lineWidth = 2.6 / CAM.z; g.globalAlpha = alpha * ru; g.stroke(RUSSIA); g.globalAlpha = alpha; }
+  const me = at(t, K.middle, .35) * (1 - lin(t, K.diesel3 - .4, K.diesel3));
+  if (me > 0) {
+    const [gx, gy] = WP.gulf, ell = new Path2D(); ell.ellipse(gx, gy, 300, 210, -.2, 0, Math.PI * 2);
+    hatch(ell, me, t, 18, 2.2, P.ink, .38); g.setTransform(CAM.z, 0, 0, CAM.z, W / 2 - CAM.x * CAM.z, H / 2 - CAM.y * CAM.z);
+    g.globalAlpha = alpha * me; g.strokeStyle = P.ink; g.lineWidth = 2.6 / CAM.z; g.setLineDash([10 / CAM.z, 9 / CAM.z]);
+    g.beginPath(); g.ellipse(gx, gy, 300, 210, -.2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * eio(me)); g.stroke(); g.setLineDash([]); g.globalAlpha = alpha;
+  }
+  // routes
+  const phase = t * .085;
+  const cnOff = eo(lin(t, K.paused - .22, K.paused + .12));
+  const probe = t > K.nobody - .35 && t < K.pump ? Math.pow(Math.sin(Math.PI * clamp((t - K.nobody + .35) / 1.25 % 1)), 2) * (t < K.restart + .6 ? 1 : 0) : 0;
+  drawRoutes(R_CN, t, { grow: i => eio(lin(t, K.now - .22 + i * .05, K.now + .42 + i * .05)), off: cnOff, probe, phase });
+  const wide = lin(t, K.world - .2, K.world + .4);
+  if (wide > 0) {
+    const meOff = eo(lin(t, K.middle - .25, K.middle + .1)), ruOff = eo(lin(t, K.russia - .25, K.russia + .1));
+    drawRoutes(R_ME, t, { grow: i => eio(lin(t, K.world - .1 + i * .08, K.world + .7 + i * .08)), off: meOff, probe: 0, phase: phase * 1.2, width: 4.6 });
+    drawRoutes(R_RU, t, { grow: i => eio(lin(t, K.world + .1 + i * .08, K.world + .9 + i * .08)), off: ruOff, probe: 0, phase: phase * 1.1, width: 4.6 });
+  }
+  g.restore();
+}
+// screen-space things anchored on the map
+function mapOverlays(t, alpha) {
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha = alpha; g.setTransform(1, 0, 0, 1, 0, 0);
+  // origin dot (fuel leaves China's coast)
+  const [ox, oy] = toS(...WP.zhoushan), dotA = lin(CAM.z, 6, 3.5) * (1 - lin(t, K.stocks0 - .5, K.stocks0 - .2) + lin(t, K.world + .2, K.world + .6));
+  if (dotA > 0) { g.globalAlpha = alpha * clamp(dotA); g.fillStyle = P.accent; g.beginPath(); g.arc(ox, oy, 11, 0, 7); g.fill(); g.globalAlpha = alpha; }
+  // "paused": ring snaps around the origin
+  const rp = spring(lin(t, K.paused - .2, K.paused + .9) * 1.5) * (1 - lin(t, K.refiners - .5, K.refiners - .2));
+  if (rp > 0) { g.strokeStyle = P.accent; g.lineWidth = 6; g.beginPath(); g.arc(ox, oy, 18 + 46 * rp, 0, 7); g.stroke(); }
+  // "China" label
+  const [cx, cy] = toS(...WP.china), cl = at(t, K.china1, .45) * (1 - lin(t, K.refiners - .55, K.refiners - .25));
+  word('China', cx, cy, 86, P.ink, cl, { serif: true, halo: 10 });
+  // "Exports" struck through
+  const ek = at(t, K.paused + .15, .3) * (1 - lin(t, K.refiners - .5, K.refiners - .2));
+  if (ek > 0) {
+    const ex = ox - 40, ey = oy + 175; const w = word('Exports', ex, ey, 104, P.ink, ek, { halo: 12 });
+    strike(ex - w / 2 - 8, ex + w / 2 + 8, ey - 36, lin(t, K.exports1 - .3, K.exports1 + .02), 12);
+  }
+  // refiners + stopped tankers
+  const rf = env(t, K.refiners, K.stocks0 - .3, .35, .25);
+  if (rf > 0) {
+    [['zhoushan', 0], ['dalian', 1], ['huizhou', 2]].forEach(([k, i]) => { const [x, y] = toS(...WP[k]), gs = .95 * Math.max(1, CAM.z / 2.6); glyph(REFINERY, x - 30 * gs, y - 4, gs, pop(t, K.refiners + i * .08, .3), 4, P.ink, i === 0 ? Math.max(rf, env(t, K.refiners, K.stocks0 + .1, .35, .2)) : rf); });
+    const [lx, ly] = toS(...WP.refl);
+    word('Refiners', lx, ly, 78, P.ink, rf * at(t, K.refiners, .3) * (1 - lin(t, K.october1 - .35, K.october1 - .15)), { align: 'left', halo: 12 });
+    // tankers heading out, then stopping on "stopped"
+    for (let i = 0; i < 4; i++) {
+      const base = toS(...proj(124 + i * 1.4, 27.5 - i * 2.6));
+      const go = Math.min(t - K.refiners + .4, (K.stopped + .2 - K.refiners + .4) + spring(lin(t, K.stopped, K.stopped + .8)) * .25);
+      const x = base[0] + go * 44, y = base[1] + go * 20 + Math.sin(t * 2 + i) * 2;
+      glyph(SHIP, x, y, .34, rf * pop(t, K.refiners + .1 + i * .07, .3), 3.2, P.ink, rf);
+    }
+    // "October": small calendar tag
+    const ok = at(t, K.october1, .32) * rf;
+    if (ok > 0) { const [qx, qy] = [lx, ly]; glyph([{ p: rrect(-34, -34, 68, 68, 8), f: P.card }, { p: [[-34, -14], [34, -14]] }, { p: [[-16, -44], [-16, -26]] }, { p: [[16, -44], [16, -26]] }], qx + 30, qy - 30, 1, pop(t, K.october1, .32), 4, P.ink, ok);
+      word('October', qx + 90, qy, 78, P.ink, ok, { align: 'left', halo: 12 }); }
+  }
+  // place labels for the wide shot
+  const [mx, my] = toS(...WP.mideast), [rx, ry] = toS(...WP.russia), wl = 1 - lin(t, K.diesel3 - .45, K.diesel3 - .15);
+  word('Middle East', mx, my, 76, P.ink, at(t, K.middle, .35) * wl, { serif: true, halo: 12 });
+  word('Russia', rx, ry, 84, P.ink, at(t, K.russia, .35) * wl, { serif: true, halo: 12 });
+  // Oct 7 calendar card with the date circled, then a question mark
+  const ck = env(t, K.october2, K.pump - .3, .35, .25);
+  if (ck > 0) {
+    const [kx, ky] = toS(...WP.calendar), s = pop(t, K.october2 + .05, .33);
+    g.save(); g.translate(kx, ky); g.scale(.6 + .4 * s, .6 + .4 * s); g.globalAlpha = alpha * clamp(s * 1.6) * ck;
+    g.fillStyle = P.card; fillPoly(rrect(-150, -170, 300, 340, 26)); g.fillStyle = P.ink; g.beginPath(); g.roundRect(-150, -170, 300, 74, [26, 26, 0, 0]); g.fill();
+    g.strokeStyle = P.ink; g.lineWidth = 4.5; g.beginPath(); g.roundRect(-150, -170, 300, 340, 26); g.stroke();
+    g.font = `600 52px ${SANS}`; g.fillStyle = P.card; g.textAlign = 'center'; g.fillText('Oct', 0, -116);
+    g.font = `700 190px ${SANS}`; g.fillStyle = P.ink; g.fillText('7', 0, 120);
+    g.restore();
+    wobRing(kx, ky + 50 * (.6 + .4 * s), 104, lin(t, K.holiday - .3, K.holiday + .35), 7, 7);
+    const [qx, qy] = toS(...WP.qmark), qk = at(t, K.nobody, .35) * ck;
+    word('?', qx, qy, 280, P.accent, qk, { serif: true, halo: 16, rise: 30 });
+  }
+  g.restore();
+}
+
+// ---------- diagram scenes (screen space, own drift) ----------
+function sceneHook(t, a, s0, x0, y0) {
+  // the fuel drop: liquid surface keeps moving; it shrinks into China's coast when the map opens
+  if (a <= 0) return;
+  const k = 3.2 * s0;
+  g.save(); g.globalAlpha = a; g.translate(x0, y0); g.scale(k, k);
+  const shape = DROP[0].p;
+  g.fillStyle = P.card; fillPoly(shape);
+  g.save(); g.beginPath(); shape.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.clip();
+  g.fillStyle = P.accent; g.beginPath(); g.moveTo(-60, 70);
+  for (let x = -60; x <= 60; x += 4) g.lineTo(x, 6 + 3.2 * Math.sin(x * .09 + t * 3.1) + 1.6 * Math.sin(x * .2 - t * 4.3));
+  g.lineTo(60, 70); g.closePath(); g.fill(); g.restore();
+  g.strokeStyle = P.ink; g.lineWidth = 6 / k; g.lineJoin = 'round'; g.beginPath(); shape.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.stroke();
+  g.restore();
+}
+function hookWords(t, x0, y0, s0) {
+  const out = 1 - lin(t, K.now - .52, K.now - .3);
+  if (out <= 0) return;
+  g.save(); g.globalAlpha = out;
+  word('U.S. diesel', x0, y0 + 330 * s0 + 120, 80, P.ink, at(t, K.diesel, .32));
+  const rk = at(t, K.record, .3);
+  word('Record', x0, y0 + 330 * s0 + 295, 156, P.accent, rk, { w: 700 });
+  wobRing(x0, y0 - 24 * s0, 330 * s0, lin(t, K.record - .3, K.record + .25), 3, 8);
+  g.restore();
+}
+function sceneTank(t, a) {
+  if (a <= 0) return;
+  const [dx, dy] = driftXY(t), cx = 420 + dx, cy = 1000 + dy, s = mix(.62, .9, eo(lin(t, K.stocks0 - .4, K.stocks0)));
+  g.save(); g.globalAlpha = a; g.translate(cx, cy); g.scale(s, s);
+  const lvl = mix(.64, .15, eio(lin(t, K.stocks - .2, K.low - .08)));
+  const top = -300, bot = 300, yl = mix(bot, top, lvl);
+  g.fillStyle = P.card; fillPoly(rrect(-230, top, 460, bot - top, 44));
+  g.save(); g.beginPath(); g.roundRect(-230, top, 460, bot - top, 44); g.clip();
+  g.fillStyle = P.accent; g.beginPath(); g.moveTo(-240, bot + 10);
+  for (let x = -240; x <= 240; x += 6) g.lineTo(x, yl + 6 * Math.sin(x * .03 + t * 3) + 3 * Math.sin(x * .07 - t * 4.6));
+  g.lineTo(240, bot + 10); g.closePath(); g.fill(); g.restore();
+  g.strokeStyle = P.ink; g.lineWidth = 5.5; g.lineJoin = 'round'; g.beginPath(); g.roundRect(-230, top, 460, bot - top, 44); g.stroke();
+  g.lineWidth = 3.5; for (let i = 1; i < 6; i++) { const y = mix(bot, top, i / 6); g.beginPath(); g.moveTo(-230, y); g.lineTo(-196, y); g.stroke(); }   // gauge ticks, no numbers
+  g.beginPath(); g.moveTo(258, bot); g.lineTo(258, top + 40); g.moveTo(292, bot); g.lineTo(292, top + 40); for (let y = bot - 30; y > top + 40; y -= 46) { g.moveTo(258, y); g.lineTo(292, y); } g.stroke();  // ladder
+  g.restore();
+  g.save(); g.globalAlpha = a;
+  word('Fuel stocks', cx + 30, cy - 300 * s - 60, 76, P.ink, at(t, K.stocks, .32));
+  const lk = at(t, K.low, .3), ly = cy + yl * s;
+  word('Low', 870 + dx, ly + 40, 128, P.accent, lk, { w: 700, halo: 12 });
+  arrowDown(870 + dx, ly - 160, 90, lk, 10);
+  g.restore();
+}
+function sceneChain(t, a) {
+  if (a <= 0) return;
+  const [dx, dy] = driftXY(t), z = 1 + .018 * Math.sin(t * .5) + .03 * lin(t, K.diesel3, K.take0);
+  g.save(); g.globalAlpha = a; g.translate(W / 2 + dx, H / 2 + dy); g.scale(z, z); g.translate(-W / 2, -H / 2);
+  const D = [540, 330], V = [[205, 980], [540, 980], [872, 980]], G = [[235, 1540], [540, 1530], [845, 1540]];
+  const dk = at(t, K.diesel3, .32);
+  // connectors (dashed), drawn as each node arrives
+  g.save(); g.strokeStyle = P.mute; g.lineWidth = 3.5; g.setLineDash([12, 12]); g.lineDashOffset = -t * 40; g.lineCap = 'round';
+  strokeTo([[540, 470], [540, 1400]], 0, at(t, K.food, .4));
+  const vk = [K.trucks, K.ships, K.tractors].map(k => at(t, k, .35));
+  [0, 2].forEach(i => { strokeTo([[540, 470], V[i]], 0, vk[i] * .82); strokeTo([V[i], [G[i][0], 1430]], 0, vk[i]); });
+  g.restore();
+  // the drop: same glyph as the opening, smaller
+  if (dk > 0) { g.save(); g.globalAlpha *= dk; sceneHook(t, 1, .62 * mix(.85, 1, pop(t, K.diesel3, .32)), D[0], D[1]); g.restore(); }
+  glyph(CRATE, G[1][0], G[1][1], 1.4, pop(t, K.food, .32), 4.5);
+  glyph(PARCEL, G[0][0], G[0][1], 1.2, pop(t, K.everything, .32), 4.5); glyph(PARCEL, G[2][0], G[2][1], 1.2, pop(t, K.everything + .08, .32), 4.5);
+  word('food', G[1][0], G[1][1] + 160, 72, P.ink, at(t, K.food, .3));
+  [TRUCK, SHIP, TRACTOR].forEach((sh, i) => { glyph(sh, V[i][0], V[i][1], 1.15, pop(t, [K.trucks, K.ships, K.tractors][i], .3), 4.5); });
+  ['trucks', 'ships', 'tractors'].forEach((w, i) => word(w, V[i][0], V[i][1] + 140, 62, P.ink, vk[i]));
+  g.restore();
+}
+function scenePool(t, a) {
+  if (a <= 0) return;
+  // personality beat: on "my take" the camera stops dead for a moment
+  const hold = lin(t, K.take - .35, K.take - .25) * (1 - lin(t, K.take + .55, K.take + .9));
+  const [dx0, dy0] = driftXY(t), [hx, hy] = driftXY(K.take - .3), dx = mix(dx0, hx, hold), dy = mix(dy0, hy, hold);
+  g.save(); g.globalAlpha = a; g.translate(dx, dy);
+  const C = [540, 1010], R = 250;
+  // "My take" pill
+  const tk = at(t, K.take0 + .45, .3);
+  if (tk > 0) { g.save(); g.globalAlpha *= clamp(tk * 1.5); g.strokeStyle = P.ink; g.lineWidth = 4.5; g.fillStyle = P.card; const y = 290 - (1 - eo(tk)) * 16;
+    g.beginPath(); g.roundRect(540 - 170, y - 62, 340, 100, 50); g.fill(); g.stroke(); g.restore(); word('My take', 540, 290 + 12, 64, P.ink, tk, { rise: 16 }); }
+  // pipes feeding the pool: Middle East (left), Russia (top), China (right)
+  const pipes = [
+    { name: 'Middle East', a: [30, 560], b: [C[0] - R * .74, C[1] - R * .67], lab: [200, 500], k: K.take + .25 },
+    { name: 'Russia', a: [540, 470], b: [540, C[1] - R], lab: [540, 440], k: K.take + .45 },
+    { name: 'China', a: [1050, 560], b: [C[0] + R * .74, C[1] - R * .67], lab: [880, 500], k: K.china3 }];
+  const shut = eio(lin(t, K.steps - .3, K.steps + .15));
+  pipes.forEach((p, i) => {
+    const pk = at(t, p.k, .35); if (pk <= 0) return;
+    const isCN = i === 2, off = isCN ? shut : 0;
+    g.save(); g.lineCap = 'round';
+    g.strokeStyle = P.ink; g.lineWidth = 34; strokeTo([p.a, p.b], 0, pk); g.strokeStyle = P.bg; g.lineWidth = 25; strokeTo([p.a, p.b], 0, pk);
+    if (pk > .95) { g.strokeStyle = mixHex(P.accent, P.faint, off); g.lineWidth = 10; g.setLineDash([22, 18]); g.lineDashOffset = -(isCN ? Math.min(t, K.steps) : t) * 90; strokeTo([p.a, p.b], .04, .96); g.setLineDash([]); }
+    const v = [mix(p.a[0], p.b[0], .5), mix(p.a[1], p.b[1], .5)], rot = (isCN ? shut : 0) * Math.PI * 1.5;
+    g.globalAlpha *= clamp(pk * 1.5); g.fillStyle = P.card; g.strokeStyle = P.ink; g.lineWidth = 4.5; g.beginPath(); g.arc(v[0], v[1], 28, 0, 7); g.fill(); g.stroke();
+    g.beginPath(); for (let s = 0; s < 4; s++) { const ang = rot + s * Math.PI / 2; g.moveTo(v[0], v[1]); g.lineTo(v[0] + Math.cos(ang) * 28, v[1] + Math.sin(ang) * 28); } g.stroke();
+    g.restore();
+    word(p.name, p.lab[0], p.lab[1], isCN ? 64 : 54, isCN ? P.ink : P.mute, pk, { serif: true, halo: 10 });
+  });
+  // the pool
+  const pk = at(t, K.take0 + .55, .4);
+  const lvl = mix(.6, .45, eio(lin(t, K.everyone - .2, K.rest)));
+  if (pk > 0) {
+    g.save(); g.globalAlpha *= clamp(pk * 1.4); g.fillStyle = P.card; g.beginPath(); g.arc(C[0], C[1], R, 0, 7); g.fill();
+    g.save(); g.beginPath(); g.arc(C[0], C[1], R, 0, 7); g.clip();
+    const yl = C[1] + R - 2 * R * lvl; g.fillStyle = P.accent; g.beginPath(); g.moveTo(C[0] - R, C[1] + R);
+    for (let x = -R; x <= R; x += 6) g.lineTo(C[0] + x, yl + 7 * Math.sin(x * .025 + t * 2.6) + 3 * Math.sin(x * .07 - t * 3.9));
+    g.lineTo(C[0] + R, C[1] + R); g.closePath(); g.fill(); g.restore();
+    g.strokeStyle = P.ink; g.lineWidth = 5.5; strokeTo(circ(C[0], C[1], R, -Math.PI / 2, Math.PI * 1.5, 90), 0, pk); g.restore();
+  }
+  // "one world pool": hand-drawn ring, the words sit on the fuel
+  wobRing(C[0], C[1], R + 44, lin(t, K.pool0 - .25, K.pool + .1), 11, 7);
+  word('One pool', C[0], C[1] + 120, 92, P.card, at(t, K.pool, .3), { w: 700 });
+  // you: fed by the pool, not by China directly
+  const hk = at(t, K.reach, .35), Hh = [540, 1640];
+  if (hk > 0) {
+    g.save(); g.strokeStyle = P.mute; g.lineWidth = 3.5; g.setLineDash([12, 12]); g.lineDashOffset = -t * 40; g.lineCap = 'round'; strokeTo([[C[0], C[1] + R + 14], [Hh[0], Hh[1] - 78]], 0, hk); g.restore();
+    glyph(HOUSE, Hh[0], Hh[1], 1.1, pop(t, K.reach, .35), 4.5); word('you', Hh[0], Hh[1] + 130, 60, P.ink, hk);
+  }
+  // everyone bids for what's left: buyers crowd the sides, the price tag rises
+  const bk = lin(t, K.everyone - .35, K.rest);
+  [[.06, 0], [.2, 1], [.34, 2], [.66, 3], [.8, 4], [.94, 5]].forEach(([f, i]) => {
+    const ang = f < .5 ? mix(-.08, .42, f / .5) * Math.PI : mix(.58, 1.08, (f - .5) / .5) * Math.PI;
+    const near = R + 92, rr = mix(760, near, eio(clamp(bk * 1.7 - i * .1)));
+    const x = C[0] + Math.cos(ang) * rr, y = C[1] + Math.sin(ang) * rr;
+    const al = clamp(bk * 3 - i * .2); if (al <= 0) return;
+    g.save(); g.globalAlpha *= al; g.fillStyle = P.ink; g.beginPath(); g.arc(x, y - 30, 14, 0, 7); g.fill(); g.beginPath(); g.ellipse(x, y + 8, 22, 26, 0, Math.PI, Math.PI * 2); g.fill(); g.restore();
+  });
+  const tg = at(t, K.bids, .3), ty = 1660 - 110 * eo(lin(t, K.bids - .1, K.rest + .3));
+  if (tg > 0) { glyph(TAG, 830, ty, 1.15, pop(t, K.bids, .3), 4.5); word('Price', 806, ty + 16, 44, P.ink, tg, { rise: 0 }); arrowUp(980, ty + 60, 120, at(t, K.bids + .15, .3), 10); }
+  g.restore();
+}
+function scenePoll(t, a, endK) {
+  if (a <= 0) return;
+  const [dx0, dy0] = driftXY(t), dm = 1 - endK, dx = dx0 * dm, dy = dy0 * dm;
+  g.save(); g.globalAlpha = a; g.translate(dx, dy);
+  const fadeRest = 1 - eo(clamp(endK * 2.2));
+  [{ x: 290, gl: PUMP, w: 'Pump', k: K.pump }, { x: 790, gl: BAG, w: 'Groceries', k: K.groceries }].forEach(c => {
+    const ck = pop(t, c.k, .3); if (ck <= 0) return;
+    const y0 = 560 + (1 - Math.min(1, ck)) * 40;
+    g.save(); g.globalAlpha *= clamp(ck * 1.5) * fadeRest; g.fillStyle = P.card; g.strokeStyle = P.ink; g.lineWidth = 4.5;
+    g.beginPath(); g.roundRect(c.x - 220, y0, 440, 760, 30); g.fill(); g.stroke(); g.restore();
+    glyph(c.gl, c.x, 900, 1.35, ck, 4.5, P.ink, fadeRest);
+    word(c.w, c.x, 1150, 70, P.ink, at(t, c.k, .3) * fadeRest);
+    g.save(); g.globalAlpha *= at(t, c.k, .3) * fadeRest; g.strokeStyle = P.ink; g.lineWidth = 4.5; g.beginPath(); g.roundRect(c.x - 32, 1210, 64, 64, 12); g.stroke(); g.restore();
+  });
+  // dry joke: a third box, "Both", ticks itself
+  const bk = at(t, K.notice, .3) * fadeRest;
+  if (bk > 0) {
+    g.save(); g.globalAlpha *= bk; g.strokeStyle = P.ink; g.lineWidth = 4.5; g.beginPath(); g.roundRect(420, 1440, 56, 56, 10); g.stroke(); g.restore();
+    word('Both', 500, 1488, 60, P.mute, bk, { align: 'left' });
+    const tk = lin(t, K.first - .05, K.first + .25);
+    if (tk > 0) { g.save(); g.globalAlpha *= fadeRest; g.strokeStyle = P.accent; g.lineWidth = 9; g.lineCap = 'round'; g.lineJoin = 'round'; strokeTo([[432, 1468], [444, 1484], [474, 1446]], 0, eio(tk)); g.restore(); }
+  }
+  g.restore();
+}
+
+// ---------- frame ----------
+function frame(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.fillStyle = P.bg; g.fillRect(0, 0, W, H);
+  const c = camAt(t), [ddx, ddy] = driftXY(t);
+  CAM = { x: c.x - ddx / c.z, y: c.y - ddy / c.z, z: c.z * (1 + .012 * Math.sin(t * .37)) };
+  // which layer is on screen
+  const chainA = env(t, K.diesel3 - .05, K.take0 - .1, .25, .25);
+  const poolA = env(t, K.take0 + .15, K.watch - .5, .25, .2);
+  const pollA = lin(t, K.pump - .55, K.pump - .25);
+  const tankA = env(t, K.stocks0 + .12, K.world - .25, .3, .3);
+  const back = lin(t, K.watch - .3, K.watch - .1), mapGate = t > K.diesel3 - .6 && t < K.watch ? 1 - lin(t, K.diesel3 - .6, K.diesel3 - .32) : (t >= K.watch - .3 && t < K.pump ? back : 1);
+  const mapA = clamp(lin(c.z, 7.5, 3.6)) * (t > K.pump - .6 ? 1 - pollA : 1) * (1 - tankA) * (t > K.diesel3 - .6 && t < K.pump ? (t < K.watch - .3 ? mapGate : back) : 1);
+  drawMap(t, mapA);
+  mapOverlays(t, mapA);
+  // opening drop: anchored at China's coast, scales with the map zoom
+  const [ox, oy] = toS(...WP.zhoushan), hs = CAM.z / 10;
+  const hookA = (1 - lin(hs, .55, .3)) * (t < K.now + 1.2 ? 1 : 0);
+  const punch = 1 + .2 * Math.sin(Math.PI * lin(t, K.record - .28, K.record + .3)) * Math.exp(-2.2 * lin(t, K.record - .28, K.record + .3));  // quick zoom on "record"
+  sceneHook(t, hookA, hs * punch, ox, oy - 40 * hs);
+  hookWords(t, ox, oy - 40 * hs, hs * punch);
+  sceneTank(t, tankA);
+  sceneChain(t, chainA);
+  scenePool(t, poolA);
+  // ending: push into the pump's drop until it is the opening frame again
+  const endK = eio(lin(t, K.vo_end + .05, DUR));
+  scenePoll(t, pollA, endK);
+  if (pollA > 0) {
+    const s = mix(.16, 1, endK), x = mix(290, W / 2, endK), y = mix(806, H / 2 - 40, endK);
+    // pump display drop (part of the pump card), grows into the opening drop
+    sceneHook(t, at(t, K.pump, .3), s, x, y);
+  }
+}
+window.FILM = { duration: DUR, width: W, height: H, ready: (async () => {
+  await Promise.all([document.fonts.load(`600 40px ${SANS}`), document.fonts.load(`700 40px ${SANS}`), document.fonts.load(`600 40px ${SERIF}`)]);
+  buildPaths(); KEYS = camKeys(); frame(0); return true; })(),
+  seek(t) { frame(t); } };
+</script>
+
+<script>
+// Thumbnail compositions, drawn with the film's own helpers. seek(1|2|3) draws option 1|2|3.
+function thumbMap() {
+  // China + routes switched off + "Exports" struck (close to the frame at 4.4 s)
+  frame(K.exports1 + .6);
+}
+function thumbDrop() {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.fillStyle = P.bg; g.fillRect(0, 0, W, H);
+  // faint map of China behind, framed on the coast
+  KEYS = [[0, 112, 31, 1.55], [99, 112, 31, 1.55]]; const c = camAt(1); CAM = { x: c.x, y: c.y, z: c.z };
+  g.save(); g.globalAlpha = .55; g.setTransform(CAM.z, 0, 0, CAM.z, W / 2 - CAM.x * CAM.z, H / 2 - CAM.y * CAM.z);
+  g.fillStyle = P.land; g.fill(LAND); g.fillStyle = '#C6CCC7'; g.fill(CHINA); g.strokeStyle = P.edge; g.lineWidth = 1.5 / CAM.z; g.stroke(LAND); g.lineWidth = 3 / CAM.z; g.stroke(CHINA);
+  g.restore();
+  // big fuel drop with a pause sign beside it
+  sceneHook(2.2, 1, 1.35, 430, 900);
+  g.fillStyle = P.accent; g.beginPath(); g.roundRect(700, 700, 74, 300, 18); g.fill(); g.beginPath(); g.roundRect(820, 700, 74, 300, 18); g.fill();
+  word('China', 540, 1440, 190, P.ink, 1, { serif: true, halo: 18, rise: 0 });
+  KEYS = camKeys();
+}
+function thumbPoll() {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.fillStyle = P.bg; g.fillRect(0, 0, W, H);
+  // pool with China's valve shut, price tag up
+  scenePool(K.rest + .4, 1);
+}
+window.FILM.seek = t => { if (t < 1.5) thumbMap(); else if (t < 2.5) thumbDrop(); else thumbPoll(); };
+</script>
+</body></html>

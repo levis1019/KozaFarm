@@ -4,6 +4,7 @@ A 39.9-second vertical Short (1080×1920) for the Quick Why channel. Built with 
 [motion-design-skill](https://github.com/Ismyp/motion-design-skill) toolchain (MIT).
 
 - `quick-why-china-fuel-pause.mp4`: the finished Short (H.264/AAC, −14 LUFS).
+- `thumbnail.jpg`: the chosen thumbnail (1080×1920), drawn by `film/thumb.html` with the film's own helpers.
 - `skript.txt`: the approved voiceover script, one line per beat.
 - `film/film.html`: the film. One 1080×1920 canvas; `window.FILM.seek(t)` draws frame t as a pure function of t.
   All visual timings come from `film/zeiten.js` (key times derived from measured word times).
