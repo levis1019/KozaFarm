@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Quick Why · Data centers in space</title>
+<style>
+@font-face{font-family:"IS";src:url(fonts/InstrumentSans-600.woff2) format("woff2");font-weight:400 700}
+html,body{margin:0;background:#0E1217;overflow:hidden}
+canvas{display:block}
+</style></head>
+<body><canvas id="c" width="1080" height="1920"></canvas>
+<script src="zeiten.js"></script>
+<script>
+// Quick Why — "Google launched AI chips into orbit". Thin-line diagram (style 16 principles) with a 3D line-model
+// satellite as the hero (style 03 technique). Dark space base, one warm heat accent. No star field.
+// Every frame is a pure function of t; all key times come from K. The film loops: frame(DUR) == frame(0).
+const W = 1080, H = 1920;
+const P = { bg: '#0E1217', line: '#E8E3D8', mute: '#5E6773', faint: '#26303A', card: '#151B22', night: '#0A0D11', accent: '#F2843A' };
+const SANS = '"IS", system-ui, sans-serif';
+const cv = document.getElementById('c'), g = cv.getContext('2d');
+const TAU = Math.PI * 2;
+
+// ---------- maths ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lin = (t, a, b) => clamp((t - a) / (b - a));
+const mix = (a, b, k) => a + (b - a) * k;
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const spring = x => x <= 0 ? 0 : x >= 3 ? 1 : 1 - Math.exp(-6.5 * x) * Math.cos(10.5 * x);
+const pop = (t, k, d = .32) => spring(lin(t, k - d, k - d + .9) * 1.6);
+const at = (t, k, d = .3) => eo(lin(t, k - d, k - .02));
+const env = (t, a, b, fi = .3, fo = .3) => Math.min(eo(lin(t, a - fi, a)), 1 - eo(lin(t, b, b + fo)));
+function mixHex(a, b, k) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return `rgb(${A.map((v, i) => Math.round(mix(v, B[i], k))).join(',')})`; }
+// periodic helpers: everything ambient repeats exactly over DUR, so the loop has no jump
+const per = (n, t, ph = 0) => Math.sin(TAU * n * t / DUR + ph);
+function driftXY(t) { return [24 * per(3, t, .4) + 8 * per(7, t, 2), 20 * per(2, t, 1.1) + 6 * per(5, t)]; }
+
+// ---------- polylines ----------
+function plen(p) { const L = [0]; for (let i = 1; i < p.length; i++) L.push(L[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1])); return L; }
+function ptAt(p, L, u) { const d = clamp(u) * L[L.length - 1]; let i = 1; while (i < L.length - 1 && L[i] < d) i++; const k = (d - L[i - 1]) / ((L[i] - L[i - 1]) || 1); return [mix(p[i - 1][0], p[i][0], k), mix(p[i - 1][1], p[i][1], k)]; }
+function strokeTo(p, u0, u1, L = plen(p)) {
+  if (u1 <= u0) return; const tot = L[L.length - 1], d0 = u0 * tot, d1 = u1 * tot;
+  const a = ptAt(p, L, u0); g.beginPath(); g.moveTo(a[0], a[1]);
+  for (let i = 1; i < p.length; i++) if (L[i] > d0 && L[i] < d1) g.lineTo(p[i][0], p[i][1]);
+  const b = ptAt(p, L, u1); g.lineTo(b[0], b[1]); g.stroke();
+}
+function circ(cx, cy, r, a0 = 0, a1 = TAU, n = 64) { const o = []; for (let i = 0; i <= n; i++) { const a = mix(a0, a1, i / n); o.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return o; }
+function word(s, x, y, size, col = P.line, k = 1, opt = {}) {
+  if (k <= 0) return 0; g.save();
+  g.font = `${opt.w || 600} ${size}px ${SANS}`; g.textAlign = opt.align || 'center'; g.textBaseline = 'alphabetic';
+  g.globalAlpha *= clamp(k * 1.4); g.fillStyle = col;
+  const rise = (1 - eo(clamp(k))) * (opt.rise ?? 14);
+  if (opt.halo) { g.lineJoin = 'round'; g.strokeStyle = P.bg; g.lineWidth = opt.halo; g.strokeText(s, x, y + rise); }
+  g.fillText(s, x, y + rise); const w = g.measureText(s).width; g.restore(); return w;
+}
+function leader(x0, y0, x1, y1, k, col = P.mute) { if (k <= 0) return; g.save(); g.strokeStyle = col; g.lineWidth = 2.5; g.lineCap = 'round'; strokeTo([[x0, y0], [x1, y1]], 0, eio(k)); g.restore(); }
+function check(x, y, s, k, col = P.accent) { if (k <= 0) return; g.save(); g.strokeStyle = col; g.lineWidth = 10; g.lineCap = 'round'; g.lineJoin = 'round'; strokeTo([[x - 30 * s, y], [x - 8 * s, y + 24 * s], [x + 34 * s, y - 26 * s]], 0, eio(k)); g.restore(); }
+function ring(x, y, r, k, col = P.accent, lw = 7) { if (k <= 0) return; g.save(); g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; strokeTo(circ(x, y, r, -Math.PI * .6, Math.PI * 1.55, 90), 0, eio(k)); g.restore(); }
+
+// ---------- 3D line-model satellite ----------
+function box(x0, y0, z0, x1, y1, z1) {
+  const v = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
+  return [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]].map(([a, b]) => [v[a], v[b]]);
+}
+const BUS = box(-.62, -.62, -.8, .62, .62, .8);
+const PANEL = s => { const x0 = s * .8, x1 = s * 3.1, e = box(Math.min(x0, x1), -.03, -.72, Math.max(x0, x1), .03, .72), cells = [];
+  for (let i = 1; i < 6; i++) { const x = mix(x0, x1, i / 6); cells.push([[x, .03, -.72], [x, .03, .72]]); } cells.push([[x0, .03, 0], [x1, .03, 0]]);
+  return { e, cells, arm: [[s * .62, 0, 0], [x0, 0, 0]] }; };
+const PANELS = [PANEL(-1), PANEL(1)];
+const ANT = [[[0, .62, .3], [0, 1.1, .3]], [[-.18, 1.1, .3], [.18, 1.1, .3]]];
+const CHIPS = [[-.3, -.3], [.3, -.3], [-.3, .3], [.3, .3]];
+// draws the satellite; opt: {cx, cy, dist, yaw, pitch, hot (panels warm), shell (bus edge alpha), chips (0..1 per chip fn), alpha}
+function sat3D(t, o) {
+  const f = 1150, cy0 = Math.cos(o.yaw), sy0 = Math.sin(o.yaw), cp = Math.cos(o.pitch), sp = Math.sin(o.pitch);
+  const Pj = ([x, y, z]) => { const X = x * cy0 - z * sy0, Z = x * sy0 + z * cy0; const Y = y * cp - Z * sp, Z2 = y * sp + Z * cp + o.dist; return [o.cx + X * f / Z2, o.cy - Y * f / Z2, Z2]; };
+  const seg = (a, b, col, lw) => { const p = Pj(a), q = Pj(b); g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); g.stroke(); };
+  g.save(); g.globalAlpha *= (o.alpha ?? 1); const A0 = g.globalAlpha; g.lineCap = 'round'; g.lineJoin = 'round';
+  const k = 10 / o.dist;   // line weight follows distance a little
+  const panelCol = mixHex(P.line, P.accent, o.hot || 0);
+  g.globalAlpha = A0 * (o.panelsA ?? 1);
+  PANELS.forEach(pn => { pn.e.forEach(([a, b]) => seg(a, b, panelCol, 2.6 * k)); pn.cells.forEach(([a, b]) => seg(a, b, mixHex(P.mute, P.accent, (o.hot || 0) * .7), 1.5 * k)); seg(pn.arm[0], pn.arm[1], P.line, 3 * k); });
+  ANT.forEach(([a, b]) => seg(a, b, P.line, 2.4 * k)); g.globalAlpha = A0;
+  // chips on a board in the middle of the bus (seen when the shell turns see-through)
+  if (o.chips) {
+    seg([-.55, -.02, -.55], [.55, -.02, -.55], P.mute, 1.6 * k); seg([.55, -.02, -.55], [.55, -.02, .55], P.mute, 1.6 * k); seg([.55, -.02, .55], [-.55, -.02, .55], P.mute, 1.6 * k); seg([-.55, -.02, .55], [-.55, -.02, -.55], P.mute, 1.6 * k);
+    CHIPS.forEach(([x, z], i) => { const c = o.chips(i); if (c <= 0) return; const s = .16 * Math.min(1.15, c);
+      const pts = [[x - s, 0, z - s], [x + s, 0, z - s], [x + s, 0, z + s], [x - s, 0, z + s]].map(Pj);
+      g.fillStyle = P.accent; g.globalAlpha = A0 * clamp(c * 1.5); g.beginPath(); pts.forEach((p, j) => j ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.fill(); g.globalAlpha = A0; });
+  }
+  const sh = o.shell ?? 1; g.globalAlpha = A0 * sh; BUS.forEach(([a, b]) => seg(a, b, P.line, 3.2 * k)); g.globalAlpha = A0;
+  g.restore();
+  return Pj;
+}
+
+// ---------- 2D satellite glyph for the diagram ----------
+function sat2D(x, y, s, o = {}) {
+  g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s, s); g.lineWidth = (o.lw || 3.2) / s; g.lineJoin = 'round'; g.strokeStyle = P.line;
+  const hotP = mixHex(P.line, P.accent, o.panelHot || 0);
+  for (const sx of [-1, 1]) {
+    const x0 = sx > 0 ? 36 : -116; g.strokeStyle = hotP; g.strokeRect(x0, -16, 80, 32);
+    g.strokeStyle = mixHex(P.mute, P.accent, (o.panelHot || 0) * .7); g.lineWidth = 1.8 / s;
+    for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(x0 + i * 20, -16); g.lineTo(x0 + i * 20, 16); g.stroke(); }
+    g.lineWidth = (o.lw || 3.2) / s; g.strokeStyle = P.line; g.beginPath(); g.moveTo(sx * 28, 0); g.lineTo(sx * 36, 0); g.stroke();
+  }
+  g.fillStyle = P.card; g.fillRect(-28, -24, 56, 48);
+  const heat = o.heat || 0;
+  if (heat > 0) { g.save(); g.beginPath(); g.rect(-28, -24, 56, 48); g.clip(); g.fillStyle = P.accent;
+    g.beginPath(); g.moveTo(-32, 28); for (let xx = -32; xx <= 32; xx += 2) g.lineTo(xx, 24 - 48 * heat + 2.4 * Math.sin(xx * .35 + (o.t || 0) * 6)); g.lineTo(32, 28); g.closePath(); g.fill(); g.restore(); }
+  g.strokeStyle = mixHex(P.line, P.accent, clamp(heat * 1.5)); g.strokeRect(-28, -24, 56, 48);
+  g.strokeStyle = P.line; g.beginPath(); g.moveTo(6, -24); g.lineTo(6, -40); g.moveTo(-2, -40); g.lineTo(14, -40); g.stroke();
+  const rad = o.rad || 0;
+  if (rad > 0) { const h = 86 * eo(rad); g.strokeStyle = P.line; g.strokeRect(-22, 30, 44, h); g.lineWidth = 1.8 / s; for (let yy = 40; yy < 30 + h - 4; yy += 10) { g.beginPath(); g.moveTo(-22, yy); g.lineTo(22, yy); g.stroke(); }
+    g.lineWidth = (o.lw || 3.2) / s; g.beginPath(); g.moveTo(0, 24); g.lineTo(0, 30); g.stroke();
+    if (o.drain > 0) { g.save(); g.strokeStyle = P.accent; g.globalAlpha *= o.drain; g.lineWidth = 3 / s; g.setLineDash([6, 7]); g.lineDashOffset = -(o.t || 0) * 40; g.beginPath(); g.moveTo(0, 8); g.lineTo(0, 30 + h - 8); g.stroke(); g.restore(); } }
+  g.restore();
+}
+function startupSat(x, y, s, a) {   // a different, smaller generic satellite: one long panel, small box
+  if (a <= 0) return; g.save(); g.globalAlpha = a; g.translate(x, y); g.scale(s, s); g.strokeStyle = P.line; g.lineWidth = 3 / s; g.lineJoin = 'round';
+  g.fillStyle = P.card; g.fillRect(-20, -20, 40, 40); g.strokeRect(-20, -20, 40, 40);
+  g.strokeRect(-20, -78, 40, 50); g.lineWidth = 1.6 / s; for (let i = 1; i < 3; i++) { g.beginPath(); g.moveTo(-20, -78 + i * 16.6); g.lineTo(20, -78 + i * 16.6); g.stroke(); }
+  g.lineWidth = 3 / s; g.beginPath(); g.moveTo(0, -20); g.lineTo(0, -28); g.stroke();
+  g.fillStyle = P.accent; g.fillRect(-7, -7, 14, 14);
+  g.restore();
+}
+
+// ---------- shared scenery ----------
+function sunAt(x, y, r, a = 1) { if (a <= 0) return; g.save(); g.globalAlpha *= a; g.strokeStyle = P.accent; g.lineWidth = 5; g.beginPath(); g.arc(x, y, r, 0, TAU); g.stroke();
+  g.lineWidth = 2.5; g.globalAlpha *= .5; g.beginPath(); g.arc(x, y, r + 26, 0, TAU); g.stroke(); g.restore(); }
+function sunlight(from, to, n, spread, a, t, lw = 2.4) {   // dashes always travelling from the Sun: light keeps arriving
+  if (a <= 0) return; g.save(); g.globalAlpha *= a * .75; g.strokeStyle = P.accent; g.lineWidth = lw; g.setLineDash([18, 22]); g.lineDashOffset = -t * (40 * Math.round(DUR * 120 / 40) / DUR);   // whole dash periods per loop
+  const dx = to[0] - from[0], dy = to[1] - from[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+  for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * spread; g.beginPath(); g.moveTo(from[0] + nx * o * .4, from[1] + ny * o * .4); g.lineTo(to[0] + nx * o, to[1] + ny * o); g.stroke(); }
+  g.setLineDash([]); g.restore();
+}
+
+// ---------- scenes ----------
+// hero: identical at t=0 and t=DUR (loop)
+function sceneHero(t, a) {
+  if (a <= 0) return;
+  g.save(); g.globalAlpha = a;
+  const [dx, dy] = driftXY(t);
+  // Earth limb at the bottom, Sun top right
+  g.save(); g.strokeStyle = P.line; g.lineWidth = 3; g.beginPath(); g.arc(540 + dx * .3, 3400 + dy * .3, 1800, Math.PI * 1.25, Math.PI * 1.75); g.stroke();
+  g.fillStyle = P.night; g.globalAlpha *= .9; g.beginPath(); g.arc(540 + dx * .3, 3400 + dy * .3, 1798, 0, TAU); g.fill(); g.restore();
+  sunAt(890 + dx * .5, 300 + dy * .5, 92);
+  // "orbit": a dashed path draws along the limb, then leaves before the loop point
+  const ok = at(t, K.orbit1, .4) * (1 - lin(t, K.test - .6, K.test - .3));
+  if (ok > 0) { g.save(); g.strokeStyle = P.mute; g.lineWidth = 3; g.setLineDash([14, 14]); strokeTo(circ(540 + dx * .3, 3400 + dy * .3, 2560, Math.PI * 1.31, Math.PI * 1.69, 80), 0, ok); g.setLineDash([]); g.restore(); }
+  sunlight([860 + dx * .5, 360 + dy * .5], [600 + dx, 960 + dy], 5, 70, 1, t);
+  // power: panels warm up on "power", cool again before the loop point
+  const hot = at(t, K.power1, .35) * (1 - lin(t, K.test - .6, K.test - .3));
+  const yaw = .55 + TAU * t / DUR, pitch = .36 + .05 * per(2, t);
+  const Pj = sat3D(t, { cx: 540 + dx, cy: 1010 + dy, dist: 7.2, yaw, pitch, hot, shell: 1 });
+  // labels at the object
+  const bus = Pj([0, .62, 0]);
+  const ck = at(t, K.chips1, .32) * (1 - lin(t, K.reason + .3, K.reason + .55));
+  leader(bus[0] + 16, bus[1] - 14, 700, 700, ck); word('AI chips', 724, 712, 80, P.line, ck, { align: 'left', halo: 12 });
+  const pk = at(t, K.power1, .3) * (1 - lin(t, K.test - .6, K.test - .3));
+  word('Power', 540 + dx, 1420 + dy, 130, P.accent, pk, { w: 700, halo: 14 });
+  // loop question at the very end, gone again before the last frame
+  const qk = (1 - lin(t, DUR - .45, DUR - .2));
+  word('Genius?', 300, 1500, 92, P.line, at(t, K.genius2, .3) * qk, { w: 700, halo: 12 });
+  word('Insane?', 780, 1500, 92, P.accent, at(t, K.insane2, .3) * qk, { w: 700, halo: 12 });
+  g.restore();
+}
+// push into the bus: four chips
+function sceneInside(t, a) {
+  if (a <= 0) return;
+  g.save(); g.globalAlpha = a;
+  const [dx, dy] = driftXY(t), push = eio(lin(t, K.test - .45, K.data + .3));
+  const yaw = .55 + TAU * t / DUR, pitch = mix(.36 + .05 * per(2, t), 1.0, push);
+  sunlight([860 + dx * .5, 360 + dy * .5], [600 + dx, 960 + dy], 5, 70, 1 - push, t);
+  const Pj = sat3D(t, { cx: 540 + dx, cy: mix(1010, 940, push) + dy, dist: mix(7.2, 4.4, push), yaw, pitch, hot: 0, shell: mix(1, .3, lin(t, K.data, K.satellite)), panelsA: 1 - .85 * eio(lin(push, 0, .45)),
+    chips: i => pop(t, K.four + i * .1, .3) });
+  const ck = at(t, K.four, .3);
+  word('4 chips', 540 + dx, 1560 + dy, 120, P.accent, ck, { w: 700, halo: 14 });
+  g.restore();
+}
+// diagram: Earth, the day-night line, the satellite always in sunlight, 8x
+function sceneDiagram(t, a, heatMode) {
+  if (a <= 0) return;
+  const [dx, dy] = driftXY(t);
+  // camera: punch-in on the satellite for the heat part (quick zoom with overshoot on "heat")
+  const S = [560, 820];
+  const pin = heatMode ? Math.min(1.08, spring(lin(t, K.catch - .1, K.heat + .5) * 1.5)) : 0;
+  const z = mix(1, 2.35, pin) * (1 + .01 * per(4, t));
+  const fx = mix(540, S[0], pin) - dx / z, fy = mix(960, S[1] + 60, pin) - dy / z;
+  g.save(); g.globalAlpha = a; g.setTransform(z, 0, 0, z, W / 2 - fx * z, H / 2 - fy * z);
+  // Earth with its night side and the day-night line
+  const E = [90, 1720], R = 760, ek = eio(lin(t, K.orbit2 - .4, K.orbit2 + .3));
+  g.save(); g.beginPath(); g.arc(E[0], E[1], R, 0, TAU); g.clip(); g.fillStyle = P.night; g.beginPath(); g.arc(E[0] - 330, E[1] + 330, R + 120, 0, TAU); g.fill(); g.restore();
+  g.strokeStyle = P.line; g.lineWidth = 3 / z; g.beginPath(); g.arc(E[0], E[1], R, -Math.PI * .5 - .7 * ek, -Math.PI * .5 + 1.15 * ek); g.stroke();
+  g.strokeStyle = P.mute; g.lineWidth = 2.4 / z; g.setLineDash([14 / z, 14 / z]); g.beginPath(); g.ellipse(E[0], E[1], R + 330, R + 260, -.45, -Math.PI * .92, -Math.PI * .08); g.stroke(); g.setLineDash([]);
+  // Sun and the light that never stops
+  sunAt(900, 260, 84);
+  sunlight([860, 330], [S[0] + 30, S[1] - 10], 5, 54, lin(t, K.orbit2 - .2, K.orbit2 + .3), t);
+  // Earth panel: goes dark at night (the comparison for "8x")
+  const ep = at(t, K.eight, .4) * (heatMode ? 0 : 1);
+  if (ep > 0) {
+    const gx = 430, gp = [gx, E[1] - Math.sqrt(R * R - (gx - E[0]) ** 2) - 14];   // sitting on the limb
+    const night = .5 + .5 * Math.sin(t * 2.6);
+    g.save(); g.globalAlpha *= ep; g.strokeStyle = mixHex(P.accent, P.mute, night); g.lineWidth = 3 / z; g.translate(gp[0], gp[1]); g.rotate(Math.atan2(gp[1] - E[1], gp[0] - E[0]) + Math.PI / 2);
+    g.strokeRect(-40, -34, 80, 22); g.beginPath(); g.moveTo(0, -12); g.lineTo(0, 0); g.stroke(); g.restore();
+    word('Earth', gp[0] - 30, gp[1] + 100, 62, P.mute, at(t, K.earth, .4) * (heatMode ? 0 : 1) + ep * 0, { halo: 10 });
+  }
+  // the satellite (heat, timer, radiator in heat mode)
+  const heat = heatMode ? clamp(lin(t, K.heat - .3, K.heat + .9)) * (1 - .6 * lin(t, K.rest - .2, K.rest + .9)) : 0;
+  const rad = heatMode ? lin(t, K.rest - .25, K.rest + .35) : 0;
+  sat2D(S[0], S[1], 1.45, { panelHot: heatMode ? 0 : at(t, K.eight, .35), heat, rad, drain: lin(t, K.rest, K.rest + .4), t });
+  if (heatMode) {
+    // no air: heat arrows bounce inside the walls
+    const ak = env(t, K.air, K.fifteen - .1, .3, .25);
+    if (ak > 0) { g.save(); g.strokeStyle = P.line; g.globalAlpha *= ak; g.lineWidth = 2.6 / z; g.lineCap = 'round';
+      for (let i = 0; i < 4; i++) { const ph = (t * 1.3 + i * .25) % 1, ang = i * 1.7 + .6, r = 20 + 58 * ph * 1.0, x0 = S[0] + Math.cos(ang) * r * 1.45, y0 = S[1] + Math.sin(ang) * r * .9;
+        const back = ph > .7; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + Math.cos(ang) * (back ? -14 : 14), y0 + Math.sin(ang) * (back ? -10 : 10)); g.stroke(); }
+      g.restore(); }
+    // 15-minute timer ring around the body, then pause
+    const tk = env(t, K.fifteen, K.expect1 - .35, .3, .25), fill = eio(lin(t, K.fifteen - .1, K.minutes + .35));
+    if (tk > 0) { g.save(); g.globalAlpha *= tk; g.lineWidth = 7 / z; g.strokeStyle = P.faint; g.beginPath(); g.arc(S[0], S[1], 64, 0, TAU); g.stroke();
+      g.strokeStyle = P.accent; g.lineCap = 'round'; g.beginPath(); g.arc(S[0], S[1], 64, -Math.PI / 2, -Math.PI / 2 + TAU * fill); g.stroke(); g.restore(); }
+    const pk = pop(t, K.rest, .3) * env(t, K.rest, K.expect1 - .35, .3, .25);
+    if (pk > 0) { g.save(); g.fillStyle = P.accent; g.translate(S[0] + 96, S[1] - 60); g.scale(pk, pk); g.fillRect(-12, -18, 9, 36); g.fillRect(3, -18, 9, 36); g.restore(); }
+  }
+  g.restore();
+  // words (screen space)
+  const sc = (x, y) => [(x - fx) * z + W / 2, (y - fy) * z + H / 2];
+  g.save(); g.globalAlpha = a;
+  if (!heatMode) {
+    word('Always lit', 540 + dx, 520 + dy, 84, P.line, at(t, K.never, .32), { halo: 12 });
+    const [ex, ey] = sc(S[0] + 40, S[1] + 250);
+    word('8×', ex, ey, 210, P.accent, at(t, K.eight, .3), { w: 700, halo: 16 });
+  } else {
+    const [hx, hy] = sc(S[0] + 52, S[1] - 40);
+    word('Heat', hx, hy, 130, P.accent, at(t, K.heat, .25) * (1 - lin(t, K.air - .3, K.air - .1)), { w: 700, align: 'left', halo: 14 });
+    const [nx, ny] = sc(S[0], S[1] - 120);
+    word('No air', nx, ny, 110, P.line, env(t, K.air, K.fifteen - .25, .3, .2), { w: 700, halo: 14 });
+    const [mx, my] = sc(S[0], S[1] - 120);
+    word('15 min', mx, my, 120, P.accent, env(t, K.fifteen, K.expect1 - .35, .3, .25), { w: 700, halo: 14 });
+  }
+  g.restore();
+}
+// the startup got there first: camera stops dead, our satellite turns to look
+function sceneStartup(t, a) {
+  if (a <= 0) return;
+  const hold = lin(t, K.expect1 - .3, K.expect1 - .2) * (1 - lin(t, K.expect1 + .6, K.expect1 + 1.0));
+  const [dx0, dy0] = driftXY(t), [hx, hy] = driftXY(K.expect1 - .25), dx = mix(dx0, hx, hold), dy = mix(dy0, hy, hold);
+  g.save(); g.globalAlpha = a; g.translate(dx, dy);
+  sunAt(900, 260, 84);
+  sunlight([860, 330], [420, 900], 5, 54, 1, t);
+  const look = eio(lin(t, K.startup + .1, K.ran + .4));
+  sat2D(380, 940, 2.1, { rot: -.38 * look, t });
+  const ix = mix(1300, 790, eio(lin(t, K.startup - .45, K.startup + .3))), iy = 760 + 10 * Math.sin(t * 1.4);
+  startupSat(ix, iy, 2.0, lin(t, K.startup - .45, K.startup - .2));
+  word('2025', ix, iy + 150, 96, P.line, at(t, K.startup, .3), { w: 700, halo: 12 });
+  word("Google's AI", ix - 20, iy - 210, 64, P.accent, at(t, K.own1, .3), { halo: 12 });
+  g.restore();
+}
+// verdict: genius idea, insane timeline, then the five-year line
+function sceneVerdict(t, a) {
+  if (a <= 0) return;
+  const [dx, dy] = driftXY(t);
+  g.save(); g.globalAlpha = a; g.translate(dx, dy);
+  const tk = at(t, K.take, .3);
+  if (tk > 0) { g.save(); g.globalAlpha *= clamp(tk * 1.5); g.strokeStyle = P.line; g.lineWidth = 4.5; g.fillStyle = P.card; const y = 330 - (1 - eo(tk)) * 16;
+    g.beginPath(); g.roundRect(540 - 175, y - 64, 350, 104, 52); g.fill(); g.stroke(); g.restore(); word('My take', 540, 330 + 12, 64, P.line, tk, { rise: 16 }); }
+  // left: the idea (sunlight) gets a check; right: the timeline (clock) gets a ring
+  const up = 1 - eio(lin(t, K.project - .4, K.project + .1));
+  g.save(); g.translate(0, -260 * (1 - up));
+  const gk = at(t, K.genius1, .3), ik = at(t, K.insane1, .3);
+  if (gk > 0) { g.save(); g.globalAlpha *= clamp(gk * 1.5); sunAt(290, 760, 70 * (.7 + .3 * pop(t, K.genius1, .3))); g.restore(); check(290, 960, 1.4, lin(t, K.idea - .1, K.idea + .3)); }
+  word('Genius', 290, 1110, 96, P.line, gk, { w: 700 });
+  if (ik > 0) { const s = .7 + .3 * pop(t, K.insane1, .3); g.save(); g.globalAlpha *= clamp(ik * 1.5); g.strokeStyle = P.line; g.lineWidth = 5; g.beginPath(); g.arc(790, 760, 72 * s, 0, TAU); g.stroke();
+      const hand = TAU * t / 3; g.beginPath(); g.moveTo(790, 760); g.lineTo(790 + Math.cos(hand) * 48 * s, 760 + Math.sin(hand) * 48 * s); g.moveTo(790, 760); g.lineTo(790, 760 - 34 * s); g.stroke(); g.restore();
+    ring(790, 760, 120, lin(t, K.timeline - .1, K.timeline + .35)); }
+  word('Insane', 790, 1110, 96, P.accent, ik, { w: 700 });
+  g.restore();
+  // five years, and the price tag does not drop
+  const fk = at(t, K.project, .35);
+  if (fk > 0) {
+    const y0 = 1360, x0 = 150, x1 = 930; g.save(); g.globalAlpha *= fk; g.strokeStyle = P.line; g.lineWidth = 4; g.lineCap = 'round';
+    strokeTo([[x0, y0], [x1, y0]], 0, eio(lin(t, K.project - .3, K.project + .5)));
+    for (let i = 0; i <= 5; i++) { const x = mix(x0, x1, i / 5), k2 = lin(t, K.project + i * .1, K.project + i * .1 + .2); if (k2 > 0) { g.globalAlpha = a * fk * k2; g.beginPath(); g.moveTo(x, y0 - 18); g.lineTo(x, y0 + 18); g.stroke(); } }
+    g.restore();
+    // tag rides along the years at the same height
+    const ride = eio(lin(t, K.cheaper - .4, K.years + .6)), tx = mix(x0 + 60, x1 - 60, ride);
+    g.save(); g.globalAlpha *= at(t, K.cheaper, .35); g.translate(tx, y0 - 110); g.fillStyle = P.card; g.strokeStyle = P.line; g.lineWidth = 4.5; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(-74, -38); g.lineTo(40, -38); g.lineTo(76, 0); g.lineTo(40, 38); g.lineTo(-74, 38); g.closePath(); g.fill(); g.stroke();
+    g.beginPath(); g.arc(40, 0, 7, 0, TAU); g.stroke(); g.restore();
+    g.save(); g.globalAlpha *= at(t, K.cheaper, .35); g.strokeStyle = P.mute; g.lineWidth = 3; g.setLineDash([10, 12]); g.beginPath(); g.moveTo(x0 + 60, y0 - 110); g.lineTo(tx - 80, y0 - 110); g.stroke(); g.setLineDash([]); g.restore();
+    word('5 years', 540, y0 + 140, 110, P.accent, at(t, K.five, .3), { w: 700 });
+  }
+  g.restore();
+}
+
+// ---------- frame ----------
+function frame(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.fillStyle = P.bg; g.fillRect(0, 0, W, H);
+  // scene envelopes (cross-fades are short and never stack more than two)
+  const heroA = Math.max(1 - lin(t, K.test - .5, K.test - .25), lin(t, K.so2 - .45, K.so2 - .15));
+  const insideA = env(t, K.test - .35, K.orbit2 - .5, .25, .25);
+  const diagA = env(t, K.orbit2 - .02, K.catch - .1, .25, .01);
+  const heatA = env(t, K.catch - .1, K.expect1 - .32, .01, .25);
+  const startA = env(t, K.expect1 - .12, K.take - .35, .25, .25);
+  const verdA = env(t, K.take - .25, K.so2 - .45, .25, .3);
+  sceneHero(t, t < K.test || t > K.so2 - .6 ? heroA : 0);
+  sceneInside(t, insideA);
+  sceneDiagram(t, diagA, false);
+  sceneDiagram(t, heatA, true);
+  sceneStartup(t, startA);
+  sceneVerdict(t, verdA);
+}
+window.FILM = { duration: DUR, width: W, height: H, ready: (async () => {
+  await Promise.all([document.fonts.load(`600 40px ${SANS}`), document.fonts.load(`700 40px ${SANS}`)]); frame(0); return true; })(),
+  seek(t) { frame(t); } };
+</script>
+</body></html>

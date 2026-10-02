@@ -1,0 +1,11 @@
+Google just launched AI chips into orbit.
+The reason is power.
+It's a test for data centers in space: one satellite, four AI chips.
+In that orbit, the sun almost never sets,
+so the panels make up to eight times more power than on Earth.
+The catch? Heat.
+There's no air to carry it off, so the chips run about fifteen minutes, then rest.
+Didn't expect this: a startup already ran Google's own AI up there.
+My take? Genius idea, insane timeline.
+Google's own project lead told NPR he doesn't expect it to get cheaper for five years.
+So, genius or insane?
